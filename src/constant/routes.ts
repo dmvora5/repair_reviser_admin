@@ -3,7 +3,10 @@ export const API_ROUTES = {
         LOGIN: "platform-admin/login/"
     },
     USERS: {
-        LIST: "platform-admin/users/"
+        LIST: "platform-admin/users/",
+        USEDETAILS: "platform-admin/user-detail/",
+        PURCHASEHISTORY: "platform-admin/users/purchase-history/",
+        CREDITUSAGE: "platform-admin/users/credits-usage-history/",
     }
 }
 
