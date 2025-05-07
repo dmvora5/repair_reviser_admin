@@ -13,6 +13,11 @@ const MENUS = [
         path: PAGE_ROUTES.DASHBOARD,
         icon: <UserCog size={18} />
     },
+    {
+        name: "Price List",
+        path: PAGE_ROUTES.PRICELIST,
+        icon: <UserCog size={18} />
+    },
 ]
 
 const DashboardLayout = ({ children }: { children: React.ReactNode }) => {

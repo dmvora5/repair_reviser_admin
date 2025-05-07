@@ -35,7 +35,7 @@ export function parseAndShowErrorInToast(error: any) {
   
 
   if (error.error) {
-
+    let reError;
     // if(typeof error.error === 'string') {
     //   parseAndShowErrorInToast({
     //     message:  error.error
@@ -43,8 +43,12 @@ export function parseAndShowErrorInToast(error: any) {
 
     //   return;
     // }
-
-    const reError = JSON.parse(error.error);
+    try {
+      reError = JSON.parse(error.error);
+    } catch (err) {
+      reError = error.error
+    }
+    // const reError = JSON.parse(error.error);
     parseAndShowErrorInToast({
       message: reError
     });

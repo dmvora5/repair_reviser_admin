@@ -1,17 +1,28 @@
 export const API_ROUTES = {
-    AUTH: {
-        LOGIN: "platform-admin/login/"
-    },
-    USERS: {
-        LIST: "platform-admin/users/",
-        USEDETAILS: "platform-admin/user-detail/",
-        PURCHASEHISTORY: "platform-admin/users/purchase-history/",
-        CREDITUSAGE: "platform-admin/users/credits-usage-history/",
-    }
-}
-
-
+  AUTH: {
+    LOGIN: "platform-admin/login/",
+  },
+  USERS: {
+    LIST: "platform-admin/users/",
+    USEDETAILS: "platform-admin/user-detail/",
+    PURCHASEHISTORY: "platform-admin/users/purchase-history/",
+    CREDITUSAGE: "platform-admin/users/credits-usage-history/",
+    JOBLIST: "platform-admin/list-jobs/",
+  },
+  PRICING: {
+    CREATEPRICE: "/platform-admin/create-pricing/",
+    GETPRICELIST: "/platform-admin/list-pricing/",
+    UPDATEPRICE: "/platform-admin/update-pricing/",
+    DELETEPRICE: "/platform-admin/delete-pricing/",
+    COMPANYLIST: "/platform-admin/list-company/",
+  }
+};
 
 export const PAGE_ROUTES = {
-    DASHBOARD: "/usermamagement"
-}
+  DASHBOARD: "/usermamagement",
+  USERLIST: "/usermamagement/user-list",
+  PURCHASEHISTORY: "/usermamagement/purchase-history",
+  CREDITUSAGE: "/usermamagement/credit-usage",
+  JOBLIST: "/usermamagement/job-list",
+  PRICELIST: "/price-list",
+};

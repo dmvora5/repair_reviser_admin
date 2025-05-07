@@ -1,7 +1,6 @@
 "use client";
 
-import { Button } from "@/components/ui/button";
-import { Edit, PlusIcon, Trash2, View } from "lucide-react";
+import { View } from "lucide-react";
 import React, { useState } from "react";
 // import AddNewUserPopup from "./AddNewUserPopup";
 import {
@@ -12,14 +11,14 @@ import {
 } from "@/components/ui/pagination";
 // import UpdateUserPopup from "./UpdateUserPopup";
 // import CreatedSuccessfullyPopup from "../CreatedSuccessfullyPopup";
+import { useRouter } from "next/navigation";
 import { PAGE_SIZE } from "@/constant";
 import {
   useAllUsersListQuery,
   useUserDetailsQuery,
-  useUserPurchaseHistoryQuery,
-  useUserCreditUsageQuery,
 } from "@/redux/api/users.api";
 import ApiState from "@/components/ApiState";
+import { PAGE_ROUTES } from "@/constant/routes";
 
 interface StateType {
   page: number;
@@ -27,6 +26,7 @@ interface StateType {
 }
 
 const page = () => {
+  const router = useRouter();
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   console.log("isModalOpen", isModalOpen);
@@ -39,19 +39,17 @@ const page = () => {
   const [editUser, setEditUser] = useState({
     open: false,
     userId: null,
-    tab: "User Details",
   });
 
   const editUserHadler = (user: any) => {
     setEditUser({
       open: true,
       userId: user?.id,
-      tab: "User Details",
     });
   };
 
   const closeModal = () => {
-    setEditUser({ open: false, userId: null, tab: "User Details" });
+    setEditUser({ open: false, userId: null });
   };
 
   const { data, isLoading, error, isSuccess, isFetching } =
@@ -62,30 +60,6 @@ const page = () => {
     { skip: !editUser.open }
   );
   console.log("🚀 ~ page ~ userDetails:", userDetails);
-  // const { data: purchaseHistory, isLoading: loadingPurchase } =
-  //   useUserPurchaseHistoryQuery(editUser.userId!, {
-  //     skip: !editUser.open || editUser.tab !== "Purchase History",
-  //   });
-  const [customPurchaseUrl, setCustomPurchaseUrl] = useState("");
-
-const { data: purchaseHistory, isLoading: loadingPurchase } = useUserPurchaseHistoryQuery(
-  customPurchaseUrl || editUser.userId!,
-  { skip: !editUser.open || editUser.tab !== "Purchase History" }
-);
-
-// Trigger refetch by changing the input
-const refetchPurchaseHistory = (url: string) => {
-  // Extract only the user ID part and page query (from your example)
-  const newUrl = url.split("/purchase-history/")[1]; // e.g. "10/?page=2"
-  setCustomPurchaseUrl(newUrl); // This should be accepted by your endpoint
-};
-
-  console.log("🚀 ~ page ~ purchaseHistory:", purchaseHistory);
-  const { data: creditUsage, isLoading: loadingCredit } =
-    useUserCreditUsageQuery(editUser.userId!, {
-      skip: !editUser.open || editUser.tab !== "Credit Usage",
-    });
-  console.log("🚀 ~ page ~ creditUsage:", creditUsage);
 
   console.log("data", data);
 
@@ -118,14 +92,6 @@ const refetchPurchaseHistory = (url: string) => {
 
     return pageNumbers;
   };
-
-  // const editUserHadler = (user: any) => {
-  //   setEditUser((ps: any) => ({
-  //     ...ps,
-  //     open: !ps.open,
-  //     user,
-  //   }));
-  // };
 
   return (
     <div className="flex flex-col flex-1">
@@ -189,7 +155,6 @@ const refetchPurchaseHistory = (url: string) => {
                         <div className="bg-gray-700 rounded-md h-6 w-24"></div>
                       </td>
                       <td className="w-[92px] justify-center min-w-[92px] flex items-center space-x-2">
-                        <div className="bg-gray-700 rounded-md h-6 w-6"></div>
                         <div className="bg-gray-700 rounded-md h-6 w-6"></div>
                       </td>
                     </tr>
@@ -286,181 +251,84 @@ const refetchPurchaseHistory = (url: string) => {
               </button>
             </div>
 
-            {/* Tabs */}
-            <div className="flex space-x-4 mb-4">
-              {["User Details", "Purchase History", "Credit Usage"].map(
-                (tab) => (
-                  <button
-                    key={tab}
-                    onClick={() => setEditUser((prev) => ({ ...prev, tab }))}
-                    className={`px-4 py-2 rounded-md ${
-                      editUser.tab === tab
-                        ? "bg-blue-600 text-white"
-                        : "bg-gray-700 text-gray-300 hover:bg-gray-600"
-                    }`}
-                  >
-                    {tab}
-                  </button>
-                )
+            {/* User Details Section */}
+            <div className="bg-gray-800 p-4 rounded-md text-white space-y-2 mb-6">
+              {loadingDetails ? (
+                <p>Loading user details...</p>
+              ) : (
+                <>
+                  <p>
+                    <strong>Username:</strong>{" "}
+                    {(userDetails as any)?.user?.username}
+                  </p>
+                  <p>
+                    <strong>Email:</strong> {(userDetails as any)?.user?.email}
+                  </p>
+                  <p>
+                    <strong>Role:</strong>{" "}
+                    {(userDetails as any)?.user?.is_company_admin
+                      ? "Company Admin"
+                      : "User"}
+                  </p>
+                </>
               )}
             </div>
 
-            {/* Tab content */}
-            <div className="bg-gray-800 p-4 rounded-md text-white">
-              {editUser.tab === "User Details" &&
-                (loadingDetails ? (
-                  <p>Loading user details...</p>
-                ) : (
-                  <div>
-                    <p>
-                      <strong>Username:</strong> {userDetails?.username}
-                    </p>
-                    <p>
-                      <strong>Email:</strong> {userDetails?.email}
-                    </p>
-                    {/* Add more fields here */}
-                  </div>
-                ))}
+            {/* Action Buttons */}
+            {loadingDetails ? (
+              <></>
+            ) : (
+              <>
+                <div className="grid grid-cols-2 gap-4">
+                  {(userDetails as any)?.user?.is_company_admin && (
+                    <button
+                      className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                      onClick={() =>
+                        router.push(
+                          `${PAGE_ROUTES.USERLIST}/${editUser.userId}`
+                        )
+                      }
+                    >
+                      Go to Users List
+                    </button>
+                  )}
 
-              {/* {editUser.tab === "Purchase History" &&
-                (loadingPurchase ? (
-                  <p>Loading purchase history...</p>
-                ) : (
-                  <ul className="list-disc pl-4">
-                    {purchaseHistory?.results?.map((item: any, i: number) => (
-                      <li key={i}>{item?.credit_amount || "Purchase item"}</li>
-                    ))}
-                  </ul>
-                ))} */}
+                  <button
+                    className="bg-gray-700 text-white px-4 py-2 rounded-md hover:bg-gray-600"
+                    onClick={() =>
+                      router.push(
+                        `${PAGE_ROUTES.PURCHASEHISTORY}/${editUser.userId}`
+                      )
+                    }
+                  >
+                    View Purchase History
+                  </button>
 
-              {editUser.tab === "Purchase History" &&
-                (loadingPurchase ? (
-                  <p className="text-white">Loading purchase history...</p>
-                ) : (
-                  <div className="space-y-4">
-                    <table className="min-w-full table-auto border-collapse border border-gray-600">
-                      <thead>
-                        <tr className="bg-gray-700 text-white">
-                          <th className="px-4 py-2 border border-gray-600 text-left">
-                            #
-                          </th>
-                          <th className="px-4 py-2 border border-gray-600 text-left">
-                            Credit Amount
-                          </th>
-                          <th className="px-4 py-2 border border-gray-600 text-left">
-                            Created At
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {purchaseHistory?.results?.map(
-                          (item: any, index: number) => (
-                            <tr key={index} className="bg-gray-800 text-white">
-                              <td className="px-4 py-2 border border-gray-600">
-                                {index + 1}
-                              </td>
-                              <td className="px-4 py-2 border border-gray-600">
-                                {item?.credit_amount}
-                              </td>
-                              <td className="px-4 py-2 border border-gray-600">
-                                {new Date(item?.created_at).toLocaleDateString(
-                                  "en-CA"
-                                )}{" "}
-                                {/* YYYY-MM-DD */}
-                              </td>
-                            </tr>
-                          )
-                        )}
-                      </tbody>
-                    </table>
+                  <button
+                    className="bg-gray-700 text-white px-4 py-2 rounded-md hover:bg-gray-600"
+                    onClick={() =>
+                      router.push(
+                        `${PAGE_ROUTES.CREDITUSAGE}/${editUser.userId}`
+                      )
+                    }
+                  >
+                    View Credit Usage
+                  </button>
 
-                    {/* Pagination Controls */}
-                    <div className="flex justify-between items-center text-white">
-                      <button
-                        disabled={!purchaseHistory?.previous}
-                        onClick={() => {
-                          if (purchaseHistory?.previous) {
-                            dispatch(
-                              api.util.updateQueryData(
-                                "getUserPurchaseHistory",
-                                editUser.userId!,
-                                (draft) => {
-                                  Object.assign(draft, {}); // Clear current
-                                }
-                              )
-                            );
-                            refetchPurchaseHistory(purchaseHistory?.previous); // You’ll define this
-                          }
-                        }}
-                        className={`px-3 py-1 rounded ${
-                          purchaseHistory?.previous
-                            ? "bg-blue-600"
-                            : "bg-gray-500 cursor-not-allowed"
-                        }`}
-                      >
-                        Prev
-                      </button>
-
-                      <span>
-                        Page{" "}
-                        {Math.ceil(purchaseHistory?.results?.[0]?.index / 10) ||
-                          1}
-                      </span>
-
-                      <button
-                        disabled={!purchaseHistory?.next}
-                        onClick={() => {
-                          if (purchaseHistory?.next) {
-                            dispatch(
-                              api.util.updateQueryData(
-                                "getUserPurchaseHistory",
-                                editUser.userId!,
-                                (draft) => {
-                                  Object.assign(draft, {}); // Clear current
-                                }
-                              )
-                            );
-                            refetchPurchaseHistory(purchaseHistory?.next); // You’ll define this
-                          }
-                        }}
-                        className={`px-3 py-1 rounded ${
-                          purchaseHistory?.next
-                            ? "bg-blue-600"
-                            : "bg-gray-500 cursor-not-allowed"
-                        }`}
-                      >
-                        Next
-                      </button>
-                    </div>
-                  </div>
-                ))}
-
-              {editUser.tab === "Credit Usage" &&
-                (loadingCredit ? (
-                  <p>Loading credit usage...</p>
-                ) : (
-                  <ul className="list-disc pl-4">
-                    {creditUsage?.results?.map((item: any, i: number) => (
-                      <li key={i}>{item?.usage || "Credit usage"}</li>
-                    ))}
-                  </ul>
-                ))}
-            </div>
+                  <button
+                    className="bg-gray-700 text-white px-4 py-2 rounded-md hover:bg-gray-600"
+                    onClick={() =>
+                      router.push(`${PAGE_ROUTES.JOBLIST}/${editUser.userId}`)
+                    }
+                  >
+                    View Job List
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </div>
       )}
-      {/* <AddNewUserPopup
-        isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
-      /> */}
-      {/* <UpdateUserPopup
-        isOpen={editUser.open}
-        onClose={() => setEditUser((ps: any) => ({
-          ...ps,
-          open: false,
-        }))}
-        editUser={editUser.user}
-      /> */}
     </div>
   );
 };
