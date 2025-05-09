@@ -1,6 +1,6 @@
 "use client";
 
-import { View } from "lucide-react";
+import { PlusIcon, View } from "lucide-react";
 import React, { useState } from "react";
 // import AddNewUserPopup from "./AddNewUserPopup";
 import {
@@ -19,6 +19,7 @@ import {
 } from "@/redux/api/users.api";
 import ApiState from "@/components/ApiState";
 import { PAGE_ROUTES } from "@/constant/routes";
+import { Button } from "@/components/ui/button";
 
 interface StateType {
   page: number;
@@ -108,12 +109,12 @@ const page = () => {
             Create new user for your company.
           </span>
         </div>
-        {/* <Button variant={"default"} onClick={() => setIsModalOpen(true)}>
+        <Button variant={"default"} onClick={() => setIsModalOpen(true)}>
           <span className="text-[14px] font-medium leading-7">
             Add New User
           </span>
           <PlusIcon className="w-[24px]" />
-        </Button> */}
+        </Button>
       </div>
       <div className="flex flex-col">
         <h3 className="text-white font-medium leading-[130%] text-[18px] tracking-normal mb-4 text-left">

@@ -11,23 +11,27 @@ import {
   PaginationEllipsis,
 } from "@/components/ui/pagination";
 import { format } from "date-fns";
+import { PAGE_SIZE } from "@/constant";
 
 const UserJobList = () => {
   const params = useParams();
   const userId = params?.userId as string;
 
-  const [currentPage, setCurrentPage] = useState(1);
-  console.log("🚀 ~ UserJobList ~ currentPage:", currentPage);
-  const { data, isLoading, error, isSuccess } = useUserJobListQuery(userId);
+  const [state, setState] = useState({ page: 1, page_size: PAGE_SIZE });
+  const currentPage = state.page;
+  const { data, isLoading, error, isSuccess } = useUserJobListQuery({
+    userId,
+    page: state.page,
+    page_size: state.page_size,
+  });
 
   const results = (data as any)?.results || [];
   const totalCount = (data as any)?.count || 0;
-  const PAGE_SIZE = 10;
-  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+  const totalPages = Math.ceil(totalCount / state.page_size);
 
-  const handlePageChange = (page: number) => {
-    if (page > 0 && page <= totalPages) {
-      setCurrentPage(page);
+  const handlePageChange = (newPage: number) => {
+    if (newPage > 0 && newPage <= totalPages) {
+      setState((prev) => ({ ...prev, page: newPage }));
     }
   };
 

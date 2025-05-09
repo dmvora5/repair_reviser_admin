@@ -11,23 +11,28 @@ import {
   PaginationEllipsis,
 } from "@/components/ui/pagination";
 import { format } from "date-fns";
+import { PAGE_SIZE } from "@/constant";
 
 const UserCreditUsage = () => {
   const params = useParams();
   const userId = params?.userId as string;
 
-  const [currentPage, setCurrentPage] = useState(1);
-  console.log("🚀 ~ UserCreditUsage ~ currentPage:", currentPage);
-  const { data, isLoading, error, isSuccess } = useUserCreditUsageQuery(userId);
+  const [state, setState] = useState({ page: 1, page_size: PAGE_SIZE });
+  const currentPage = state.page;
+
+  const { data, isLoading, error, isSuccess } = useUserCreditUsageQuery({
+    userId,
+    page: state.page,
+    page_size: state.page_size,
+  });
 
   const results = (data as any)?.results || [];
   const totalCount = (data as any)?.count || 0;
-  const PAGE_SIZE = 10;
-  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+  const totalPages = Math.ceil(totalCount / state.page_size);
 
-  const handlePageChange = (page: number) => {
-    if (page > 0 && page <= totalPages) {
-      setCurrentPage(page);
+  const handlePageChange = (newPage: number) => {
+    if (newPage > 0 && newPage <= totalPages) {
+      setState((prev) => ({ ...prev, page: newPage }));
     }
   };
 
@@ -54,7 +59,7 @@ const UserCreditUsage = () => {
 
   return (
     <div className="text-white">
-      <h1 className="text-xl font-bold mb-4">User credit Usage History</h1>
+      <h1 className="text-xl font-bold mb-4">User Credit Usage History</h1>
 
       <ApiState isSuccess={isSuccess} error={error}>
         <ApiState.Error />
@@ -80,7 +85,7 @@ const UserCreditUsage = () => {
             </thead>
             <tbody>
               {isLoading ? (
-                [...Array(PAGE_SIZE)].map((_, index) => (
+                [...Array(state.page_size)].map((_, index) => (
                   <tr
                     key={index}
                     className="flex space-x-1 animate-pulse *:py-3 *:px-4 *:border-b *:border-[#162332] *:min-h-[56px] *:items-center *:flex *:text-[#8F9DAC] *:text-[14px]"
@@ -111,7 +116,7 @@ const UserCreditUsage = () => {
                       className="flex space-x-1 *:py-3 *:px-4 *:border-b *:border-[#162332] *:min-h-[48px] *:items-center *:flex *:text-[#8F9DAC] *:text-[14px]"
                     >
                       <td className="w-[90px] justify-center min-w-[90px] flex">
-                        {(currentPage - 1) * PAGE_SIZE + index + 1}
+                        {(currentPage - 1) * state.page_size + index + 1}
                       </td>
                       <td className="flex-1">{item.username}</td>
                       <td className="flex-1">{item.used_credit}</td>

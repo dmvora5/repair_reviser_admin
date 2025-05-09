@@ -30,31 +30,35 @@ export const userApi = createApi({
     }),
 
     userPurchaseHistory: build.query({
-      query: (id: any) => ({
-        url: `${API_ROUTES.USERS.PURCHASEHISTORY}${id}/`,
+      query: (payload: any) => ({
+        url: `${API_ROUTES.USERS.PURCHASEHISTORY}${payload?.userId}/`,
         method: "GET",
+        params: payload,
       }),
       providesTags: (result: any) => [{ type: "Users", id: +result?.id }],
     }),
 
     userCreditUsage: build.query({
-      query: (id: any) => ({
-        url: `${API_ROUTES.USERS.CREDITUSAGE}${id}/`,
+      query: (payload: any) => ({
+        url: `${API_ROUTES.USERS.CREDITUSAGE}${payload?.userId}/`,
         method: "GET",
+        params: payload,
       }),
       providesTags: (result: any) => [{ type: "Users", id: +result?.id }],
     }),
     userJobList: build.query({
-      query: (id: any) => ({
-        url: `${API_ROUTES.USERS.JOBLIST}${id}/`,
+      query: (payload: any) => ({
+        url: `${API_ROUTES.USERS.JOBLIST}${payload?.userId}/`,
         method: "GET",
+        params: payload,
       }),
       providesTags: (result: any) => [{ type: "Users", id: +result?.id }],
     }),
     getPriceLists: build.query({
-      query: () => ({
+      query: (payload: any) => ({
         url: API_ROUTES.PRICING.GETPRICELIST,
         method: "GET",
+        params: payload,
       }),
       providesTags: (result: any) =>
         result?.results
