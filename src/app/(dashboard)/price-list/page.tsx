@@ -29,8 +29,12 @@ import {
 
 const PriceListPage = () => {
   const [state, setState] = useState({ page: 1, page_size: PAGE_SIZE });
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [deleteLoading, setDeleteLoading] = useState(false);
+  const [deletePriceId, setDeletePriceId] = useState<number | null>(null);
+
   const currentPage = state.page;
-  const { data, isLoading, error, isSuccess, refetch } = useGetPriceListsQuery({
+  const { data, isLoading, error, isSuccess, refetch, isFetching } = useGetPriceListsQuery({
     page: state.page,
     page_size: state.page_size,
   });
@@ -124,10 +128,18 @@ const PriceListPage = () => {
     refetch();
   };
 
-  const handleDelete = async (id: number) => {
-    if (confirm("Are you sure you want to delete this price?")) {
-      await deletePrice(id);
+  const handleDelete = async () => {
+    if (deletePriceId === null) return;
+    setDeleteLoading(true);
+    try {
+      await deletePrice(deletePriceId).unwrap();
       refetch();
+    } catch (err) {
+      console.error("Delete error", err);
+    } finally {
+      setDeleteLoading(false);
+      setDeleteModalOpen(false);
+      setDeletePriceId(null);
     }
   };
 
@@ -179,7 +191,7 @@ const PriceListPage = () => {
               </thead>
 
               <tbody>
-                {isLoading
+                {isLoading || isFetching
                   ? [...Array(5)].map((_, index) => (
                       <tr
                         key={index}
@@ -227,7 +239,10 @@ const PriceListPage = () => {
                             <Pencil className="w-[20px]" />
                           </button>
                           <button
-                            onClick={() => handleDelete(price.id)}
+                            onClick={() => {
+                              setDeletePriceId(price.id);
+                              setDeleteModalOpen(true);
+                            }}
                             className="text-red-400 hover:text-red-600"
                           >
                             <Trash2 className="w-[20px]" />
@@ -361,6 +376,38 @@ const PriceListPage = () => {
 
                 <Button onClick={handleSubmit} className="w-full">
                   {editPriceId ? "Update Price" : "Create Price"}
+                </Button>
+              </div>
+            </DialogContent>
+          </Dialog>
+        )}
+
+        {deleteModalOpen && (
+          <Dialog
+            open={deleteModalOpen}
+            onOpenChange={() => setDeleteModalOpen(false)}
+          >
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>Confirm Delete</DialogTitle>
+              </DialogHeader>
+              <div className="text-gray-800 mb-4">
+                Are you sure you want to delete this price?
+              </div>
+              <div className="flex justify-end gap-4">
+                <Button
+                  variant="secondary"
+                  onClick={() => setDeleteModalOpen(false)}
+                  disabled={deleteLoading}
+                >
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleDelete}
+                  disabled={deleteLoading}
+                  className="bg-red-500 hover:bg-red-600 text-white"
+                >
+                  {deleteLoading ? "Deleting..." : "Delete"}
                 </Button>
               </div>
             </DialogContent>
