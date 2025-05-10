@@ -34,10 +34,11 @@ const PriceListPage = () => {
   const [deletePriceId, setDeletePriceId] = useState<number | null>(null);
 
   const currentPage = state.page;
-  const { data, isLoading, error, isSuccess, refetch, isFetching } = useGetPriceListsQuery({
-    page: state.page,
-    page_size: state.page_size,
-  });
+  const { data, isLoading, error, isSuccess, refetch, isFetching } =
+    useGetPriceListsQuery({
+      page: state.page,
+      page_size: state.page_size,
+    });
 
   const results = (data as any)?.results || [];
   const totalCount = (data as any)?.count || 0;
@@ -311,7 +312,7 @@ const PriceListPage = () => {
 
         {modalOpen && (
           <Dialog open={modalOpen} onOpenChange={handleCloseModal}>
-            <DialogContent>
+            <DialogContent className="bg-black text-white">
               <DialogHeader>
                 <DialogTitle>
                   {editPriceId ? "Edit Price" : "Add New Price"}
@@ -322,6 +323,7 @@ const PriceListPage = () => {
                   type="number"
                   placeholder="Credit Amount"
                   value={formData.credit_amount}
+                  className="bg-gray-900 text-white placeholder-gray-400"
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
@@ -334,6 +336,7 @@ const PriceListPage = () => {
                   step="0.01"
                   placeholder="Price (USD)"
                   value={formData.price}
+                  className="bg-gray-900 text-white placeholder-gray-400"
                   onChange={(e) =>
                     setFormData((prev) => ({
                       ...prev,
@@ -341,22 +344,9 @@ const PriceListPage = () => {
                     }))
                   }
                 />
-                {/* {!editPriceId && (
-                <Input
-                  type="number"
-                  placeholder="company"
-                  value={formData.company}
-                  onChange={(e) =>
-                    setFormData((prev) => ({
-                      ...prev,
-                      company: e.target.value,
-                    }))
-                  }
-                />
-              )} */}
                 {!editPriceId && (
                   <select
-                    className="w-full p-2 rounded border border-gray-300 bg-white text-black"
+                    className="w-full p-2 rounded border border-gray-300 bg-gray-900 text-white"
                     value={formData.company || ""}
                     onChange={(e) =>
                       setFormData((prev) => ({
@@ -373,7 +363,6 @@ const PriceListPage = () => {
                     ))}
                   </select>
                 )}
-
                 <Button onClick={handleSubmit} className="w-full">
                   {editPriceId ? "Update Price" : "Create Price"}
                 </Button>
@@ -387,11 +376,11 @@ const PriceListPage = () => {
             open={deleteModalOpen}
             onOpenChange={() => setDeleteModalOpen(false)}
           >
-            <DialogContent>
+            <DialogContent className="bg-black text-white">
               <DialogHeader>
                 <DialogTitle>Confirm Delete</DialogTitle>
               </DialogHeader>
-              <div className="text-gray-800 mb-4">
+              <div className="text-gray-300 mb-4">
                 Are you sure you want to delete this price?
               </div>
               <div className="flex justify-end gap-4">
@@ -399,6 +388,7 @@ const PriceListPage = () => {
                   variant="secondary"
                   onClick={() => setDeleteModalOpen(false)}
                   disabled={deleteLoading}
+                  className="bg-gray-700 text-white hover:bg-gray-600"
                 >
                   Cancel
                 </Button>
