@@ -58,7 +58,7 @@ const LogOutPopup: React.FC<LogOutPopupProps> = ({
 
         {/* Form */}
         <div className="flex flex-row gap-6 w-full">
-          <Button type="submit" variant="outline" className="w-full" onClick={onClose}>
+          <Button type="submit" variant="outline"  className="w-full py-[14px] px-[32px] h-[50px] text-black" onClick={onClose}>
             No
           </Button>
           <Button onClick={logOut} type="submit" className="auth-button">
