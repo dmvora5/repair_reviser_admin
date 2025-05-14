@@ -5,7 +5,7 @@ import { createApi } from "@reduxjs/toolkit/query/react";
 export const userApi = createApi({
   baseQuery: baseQueryWithAuth,
   reducerPath: "users",
-  tagTypes: ["Users", "Price"],
+  tagTypes: ["Users", "Price", "Privacy", "Contact"],
   endpoints: (build: any) => ({
     allUsersList: build.query({
       query: (payload: any) => ({
@@ -28,7 +28,6 @@ export const userApi = createApi({
         };
       },
     }),
-
     userPurchaseHistory: build.query({
       query: (payload: any) => ({
         url: `${API_ROUTES.USERS.PURCHASEHISTORY}${payload?.userId}/`,
@@ -37,7 +36,6 @@ export const userApi = createApi({
       }),
       providesTags: (result: any) => [{ type: "Users", id: +result?.id }],
     }),
-
     userCreditUsage: build.query({
       query: (payload: any) => ({
         url: `${API_ROUTES.USERS.CREDITUSAGE}${payload?.userId}/`,
@@ -93,11 +91,9 @@ export const userApi = createApi({
         body: {
           credit_amount: payload?.credit_amount,
           price: payload?.price,
-          // company: payload?.company,
         },
       }),
       invalidatesTags: (result: any, error: any, { id }: any) => {
-        console.log("id", id);
         return [
           { type: "Price", id: "LIST" },
           { type: "Price", id: +id },
@@ -110,6 +106,52 @@ export const userApi = createApi({
         method: "GET",
       }),
       providesTags: (result: any) => [{ type: "Users", id: +result?.id }],
+    }),
+    getPrivacyList: build.query({
+      query: (payload: any) => ({
+        url: API_ROUTES.PRIVACY.GETPRIVACY,
+        method: "GET",
+      }),
+      providesTags: ["Privacy"],
+    }),
+    updatePrivacy: build.mutation({
+      query: (payload: any) => {
+        let body: Record<string, any> = {};
+
+        if (payload.type === "privacy_text") {
+          body.privacy_text = payload.value;
+        } else if (payload.type === "terms_condition_text") {
+          body.terms_condition_text = payload.value;
+        } else if (payload.type === "faq") {
+          // body.f_a_q = {
+          //   id: payload.id,
+          //   answer: payload.answer,
+          // };
+          body.f_a_q = payload.value;
+        }
+
+        return {
+          url: `${API_ROUTES.PRIVACY.UPDATEPRIVACY}`,
+          method: "PATCH",
+          body,
+        };
+      },
+      invalidatesTags: ["Privacy"],
+    }),
+    getContactUsList: build.query({
+      query: (payload: any) => ({
+        url: API_ROUTES.CONTACTUS.GETCONTACTUS,
+        method: "GET",
+        params: payload,
+      }),
+      providesTags: ["Contact"],
+    }),
+    updateContactUs: build.mutation({
+      query: (payload: any) => ({
+        url: `${API_ROUTES.CONTACTUS.UPDATECONTACTUS}${payload.id}/`,
+        method: "PATCH",
+      }),
+      invalidatesTags: ["Contact"],
     }),
   }),
 });
@@ -127,4 +169,12 @@ export const {
   useAddPriceMutation,
   useUpdatePriceMutation,
   useGetCompanyListQuery,
+
+  //privacy
+  useGetPrivacyListQuery,
+  useUpdatePrivacyMutation,
+
+  // contactus
+  useGetContactUsListQuery,
+  useUpdateContactUsMutation
 } = userApi;

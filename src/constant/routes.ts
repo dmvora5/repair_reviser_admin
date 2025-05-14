@@ -15,6 +15,14 @@ export const API_ROUTES = {
     UPDATEPRICE: "/platform-admin/update-pricing/",
     DELETEPRICE: "/platform-admin/delete-pricing/",
     COMPANYLIST: "/platform-admin/list-company/",
+  },
+  PRIVACY: {
+    GETPRIVACY:"/platform-admin/site-content/",
+    UPDATEPRIVACY:"/platform-admin/update-site-content/",
+  },
+  CONTACTUS: {
+    GETCONTACTUS:"/platform-admin/contact-us-list/",
+    UPDATECONTACTUS:"/platform-admin/contact-us-reviewed/",
   }
 };
 
@@ -25,4 +33,6 @@ export const PAGE_ROUTES = {
   CREDITUSAGE: "/usermamagement/credit-usage",
   JOBLIST: "/usermamagement/job-list",
   PRICELIST: "/price-list",
+  PRIVACYANDTERMS: "/privacy-terms",
+  CONTACTUS: "/contact-us"
 };
