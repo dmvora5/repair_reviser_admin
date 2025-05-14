@@ -1,13 +1,10 @@
 "use client";
 
 import React, { useState } from "react";
-import CkEditor from "@/components/CkEditor";
-import {
-  useGetPrivacyListQuery,
-  useUpdatePrivacyMutation,
-} from "@/redux/api/users.api";
+import { useGetPrivacyListQuery } from "@/redux/api/users.api";
 import ApiState from "@/components/ApiState";
 import { Pencil } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 interface PrivacyListType {
   privacy_text: string;
@@ -16,6 +13,7 @@ interface PrivacyListType {
 }
 
 const Editor: React.FC = () => {
+  const router = useRouter();
   const {
     data: privacyList,
     isLoading,
@@ -32,61 +30,17 @@ const Editor: React.FC = () => {
     isFetching: boolean;
   };
 
-  const [updatePrivacy, { isLoading: isUpdatePrivacyLoading }] =
-    useUpdatePrivacyMutation();
-
-  const [editorData, setEditorData] = useState<string>("");
-  const [editingId, setEditingId] = useState<string | null>(null);
-  const [editingType, setEditingType] = useState<string | null>(null); // 'privacy', 'terms', 'faq'
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  const handleOnUpdate = (editor: string, field: string): void => {
-    if (field === "description") {
-      setEditorData(editor);
-    }
-  };
-
   const handleEditClick = (type: string, item: any) => {
-    setEditingType(type);
-    setEditingId(item.id || type); // Fallback for static texts
-    setEditorData(item.description || item);
-    setIsModalOpen(true);
-  };
+    const id = item.id || type;
+    const data = item.description || item;
 
-  const handleCloseModal = () => {
-    setIsModalOpen(false);
-    setEditingId(null);
-    setEditingType(null);
-    setEditorData("");
-  };
+    const queryParams = new URLSearchParams({
+      type,
+      id,
+      data: data,
+    });
 
-  const handleUpdate = async () => {
-    console.log("Updated content:", editorData);
-    console.log("Updating record ID or Type:", editingId, editingType);
-
-    try {
-      // if (editingType === "faq") {
-      //   // Update a specific FAQ item
-      //   await updatePrivacy({
-      //     type: "faq",
-      //     id: editingId, // required to identify which FAQ item
-      //     answer: editorData,
-      //   }).unwrap();
-      // } else {
-      // Update static fields like privacy_text or terms_condition_text
-      await updatePrivacy({
-        type: editingType, // "privacy_text" or "terms_condition_text"
-        value: editorData,
-      }).unwrap();
-      // }
-
-      // Reset after successful update
-      setEditingId(null);
-      setEditingType(null);
-    } catch (err) {
-      console.error("Update failed", err);
-      // Optional: show error toast or alert
-    }
+    router.push(`/privacy-terms/editor?${queryParams.toString()}`);
   };
 
   if (isLoading) return <p>Loading...</p>;
@@ -232,49 +186,6 @@ const Editor: React.FC = () => {
                 </tbody>
               </table>
             </div>
-
-            {/* CKEditor Area */}
-            {isModalOpen && (
-              <div className="fixed inset-0 z-50 bg-black bg-opacity-50 flex items-center justify-center">
-                <div className="bg-[#1A2230] p-6 rounded-md w-[90%] max-w-3xl shadow-lg relative">
-                  <h3 className="text-white font-medium text-[18px] mb-4">
-                    Edit Description
-                  </h3>
-
-                  <CkEditor
-                    editorData={editorData}
-                    setEditorData={setEditorData}
-                    handleOnUpdate={handleOnUpdate}
-                  />
-
-                  <div className="mt-4 flex justify-end space-x-3">
-                    <button
-                      className="px-4 py-2 bg-gray-500 text-white rounded hover:bg-gray-600"
-                      onClick={handleCloseModal}
-                    >
-                      Cancel
-                    </button>
-                    <button
-                      className="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700"
-                      onClick={async () => {
-                        await handleUpdate();
-                        handleCloseModal(); // close modal after update
-                      }}
-                    >
-                      Update
-                    </button>
-                  </div>
-
-                  {/* Optional: Close Icon */}
-                  <button
-                    onClick={handleCloseModal}
-                    className="absolute top-3 right-3 text-white hover:text-red-500"
-                  >
-                    ✕
-                  </button>
-                </div>
-              </div>
-            )}
           </div>
         </ApiState>
       </div>

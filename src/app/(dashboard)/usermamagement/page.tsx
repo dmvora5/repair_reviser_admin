@@ -20,6 +20,7 @@ import {
 import ApiState from "@/components/ApiState";
 import { PAGE_ROUTES } from "@/constant/routes";
 import { Button } from "@/components/ui/button";
+import PageSizeSelector from "@/components/PageSizeSelector";
 
 interface StateType {
   page: number;
@@ -125,7 +126,7 @@ const page = () => {
             <thead>
               <tr className="space-x-1 flex">
                 <th className="py-3 px-4 w-[90px] justify-center min-w-[90px] items-center flex font-medium text-[14px] leading-[130%] tracking-normal text-white bg-[#212B3EBF] rounded-[9px] min-h-[48px]">
-                  Number
+                  Company User
                 </th>
                 <th className="py-3 px-4 flex-1 font-medium text-[14px] items-center flex leading-[130%] tracking-normal text-white bg-[#212B3EBF] rounded-[9px] min-h-[48px]">
                   Customer Name
@@ -166,7 +167,7 @@ const page = () => {
                       className="flex space-x-1 *:py-3 *:px-4 *:border-b *:border-[#162332] *:min-h-[48px] *:items-center *:flex *:text-[#8F9DAC] *:text-[14px] *:font-normal *:leading-[130%] *:tracking-normal"
                     >
                       <td className="w-[90px] justify-center min-w-[90px]">
-                        201
+                        {ele?.is_company_admin ? "Yes" : "No"}
                       </td>
                       <td className="flex-1">{ele?.username}</td>
                       <td className="min-w-fit">05/07/2024</td>
@@ -240,6 +241,10 @@ const page = () => {
               </PaginationItem>
             </PaginationContent>
           )}
+          <PageSizeSelector
+            value={state.page_size}
+            onChange={(newSize) => setState({ page: 1, page_size: newSize })}
+          />
         </Pagination>
       </div>
       {editUser.open && (

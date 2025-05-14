@@ -14,6 +14,7 @@ import {
   useUpdateContactUsMutation,
 } from "@/redux/api/users.api";
 import ApiState from "@/components/ApiState";
+import PageSizeSelector from "@/components/PageSizeSelector";
 
 interface StateType {
   page: number;
@@ -25,6 +26,9 @@ const page = () => {
     page: 1,
     page_size: PAGE_SIZE,
   });
+  const [showModal, setShowModal] = useState(false);
+  const [selectedData, setSelectedData] = useState<any>({});
+  console.log("🚀 ~ page ~ selectedData:", selectedData);
 
   const { data, isLoading, error, isSuccess, isFetching } =
     useGetContactUsListQuery(state);
@@ -63,13 +67,13 @@ const page = () => {
     return pageNumbers;
   };
 
-  const handleUpdate = async (id: string | number) => {
+  const handleUpdate = async (id: string | number, data: any) => {
     try {
       await updateContactUs({ id }).unwrap();
-      // Optionally show success toast here
+      setSelectedData(data); // Show full message in modal
+      setShowModal(true);
     } catch (error) {
       console.error("Failed to update contact", error);
-      // Optionally show error toast here
     }
   };
 
@@ -108,50 +112,6 @@ const page = () => {
                 </th>
               </tr>
             </thead>
-            {/* <tbody>
-              {isFetching
-                ? // Loading Skeleton Rows
-                  [...Array(5)].map((_, index) => (
-                    <tr
-                      key={index}
-                      className="flex space-x-1 animate-pulse *:px-4 *:border-b *:border-[#162332] *:min-h-[56px] *:items-center *:flex *:text-[#8F9DAC] *:text-[14px] *:font-normal *:leading-[130%] *:tracking-normal"
-                    >
-                      <td className="flex-1">
-                        <div className="bg-gray-700 rounded-md h-6 w-32"></div>
-                      </td>
-                      <td className="min-w-[176px]">
-                        <div className="bg-gray-700 rounded-md h-6 w-20"></div>
-                      </td>
-                      <td className="min-w-[176px]">
-                        <div className="bg-gray-700 rounded-md h-6 w-24"></div>
-                      </td>
-                      <td className="w-[92px] justify-center min-w-[92px] flex items-center space-x-2">
-                        <div className="bg-gray-700 rounded-md h-6 w-6"></div>
-                      </td>
-                    </tr>
-                  ))
-                : ((data as any)?.results || []).map((ele: any) => (
-                    <tr
-                      key={ele?.id}
-                      className="flex space-x-1 *:py-3 *:px-4 *:border-b *:border-[#162332] *:min-h-[48px] *:items-center *:flex *:text-[#8F9DAC] *:text-[14px] *:font-normal *:leading-[130%] *:tracking-normal"
-                    >
-                      <td className="w-[90px] justify-center min-w-[90px]">
-                        {ele?.name}
-                      </td>
-                      <td className="flex-1">{ele?.email}</td>
-                      <td className="min-w-fit">{ele?.message}</td>
-                      <td className="min-w-fit">{ele?.created_at}</td>
-                      <td className="w-[92px] justify-center min-w-[92px] space-x-2">
-                        <button
-                          onClick={editUserHadler.bind(null, ele)}
-                          className="text-[#62ee21] hover:text-green-400"
-                        >
-                          <View className="w-[20px]" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
-            </tbody> */}
             <tbody>
               {isFetching
                 ? [...Array(5)].map((_, index) => (
@@ -185,11 +145,16 @@ const page = () => {
                         {ele?.name}
                       </td>
                       <td className="flex-1">{ele?.email}</td>
-                      <td className="flex-1">{ele?.message}</td>
+                      <td className="flex-1">
+                        {ele?.message?.length > 100
+                          ? `${ele.message.slice(0, 100)}...`
+                          : ele.message}
+                      </td>
+
                       <td className="min-w-fit">{ele?.created_at}</td>
                       <td className="w-[92px] justify-center min-w-[92px] flex items-center space-x-2">
                         <button
-                          onClick={() => handleUpdate(ele?.id)}
+                          onClick={() => handleUpdate(ele?.id, ele)}
                           className="text-[#62ee21] hover:text-green-400"
                         >
                           <View className="w-[20px]" />
@@ -254,8 +219,43 @@ const page = () => {
               </PaginationItem>
             </PaginationContent>
           )}
+          <PageSizeSelector
+            value={state.page_size}
+            onChange={(newSize) => setState({ page: 1, page_size: newSize })}
+          />
         </Pagination>
       </div>
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-[#1e293b] text-white p-6 rounded-lg w-full max-w-2xl">
+            <h2 className="text-xl font-semibold mb-4">Details</h2>
+            <div className="text-sm max-h-[400px] overflow-y-auto whitespace-pre-line space-y-2">
+              <p>
+                <strong>Name:</strong> {selectedData?.name}
+              </p>
+              <p>
+                <strong>Email:</strong> {selectedData?.email}
+              </p>
+              <p>
+                <strong>Message:</strong>
+                <br />
+                {selectedData?.message}
+              </p>
+              <p>
+                <strong>Created On:</strong> {selectedData?.created_at}
+              </p>
+            </div>
+            <div className="flex justify-end mt-4">
+              <button
+                className="bg-gray-700 hover:bg-gray-600 px-4 py-2 rounded text-sm"
+                onClick={() => setShowModal(false)}
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

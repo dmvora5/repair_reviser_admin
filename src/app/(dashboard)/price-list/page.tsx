@@ -26,6 +26,7 @@ import {
   PaginationItem,
   PaginationEllipsis,
 } from "@/components/ui/pagination";
+import PageSizeSelector from "@/components/PageSizeSelector";
 
 const PriceListPage = () => {
   const [state, setState] = useState({ page: 1, page_size: PAGE_SIZE });
@@ -233,21 +234,25 @@ const PriceListPage = () => {
                           {price.is_default ? "✅" : "❌"}
                         </td>
                         <td className="w-[92px] justify-center space-x-2">
-                          <button
-                            onClick={() => handleOpenModal(price)}
-                            className="text-blue-400 hover:text-blue-600"
-                          >
-                            <Pencil className="w-[20px]" />
-                          </button>
-                          <button
-                            onClick={() => {
-                              setDeletePriceId(price.id);
-                              setDeleteModalOpen(true);
-                            }}
-                            className="text-red-400 hover:text-red-600"
-                          >
-                            <Trash2 className="w-[20px]" />
-                          </button>
+                          {price.is_default == false && (
+                            <>
+                              <button
+                                onClick={() => handleOpenModal(price)}
+                                className="text-blue-400 hover:text-blue-600"
+                              >
+                                <Pencil className="w-[20px]" />
+                              </button>
+                              <button
+                                onClick={() => {
+                                  setDeletePriceId(price.id);
+                                  setDeleteModalOpen(true);
+                                }}
+                                className="text-red-400 hover:text-red-600"
+                              >
+                                <Trash2 className="w-[20px]" />
+                              </button>
+                            </>
+                          )}
                         </td>
                       </tr>
                     ))}
@@ -256,8 +261,8 @@ const PriceListPage = () => {
           </div>
 
           {/* Pagination */}
-          {totalPages > 1 && (
-            <Pagination className="flex justify-center items-center mt-4">
+          <Pagination className="flex justify-center items-center mt-4">
+            {totalPages > 1 && (
               <PaginationContent className="flex space-x-2 bg-[#1E1E2E] p-3 rounded-lg shadow-md">
                 <PaginationItem>
                   <button
@@ -306,8 +311,12 @@ const PriceListPage = () => {
                   </button>
                 </PaginationItem>
               </PaginationContent>
-            </Pagination>
-          )}
+            )}
+            <PageSizeSelector
+              value={state.page_size}
+              onChange={(newSize) => setState({ page: 1, page_size: newSize })}
+            />
+          </Pagination>
         </div>
 
         {modalOpen && (

@@ -158,3 +158,33 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Make CKEditor container white with border */
+.ck.ck-editor {
+  background-color: #ffffff !important;
+  border-radius: 6px;
+  border: 1px solid #d1d5db; /* Tailwind's gray-300 */
+}
+
+/* Toolbar background white */
+.ck.ck-toolbar {
+  background-color: #ffffff !important;
+  border-bottom: 1px solid #e5e7eb; /* light border between toolbar and editor */
+}
+
+/* Text editing area white */
+.ck.ck-editor__main > .ck-editor__editable {
+  background-color: #ffffff !important;
+  color: #111827 !important; /* Tailwind's gray-900 */
+  border: none !important;
+  min-height: 750px;
+  padding: 1rem;
+  font-size: 1rem;
+}
+
+/* Optional: improve visibility for toolbar buttons */
+.ck.ck-toolbar .ck-button .ck-button__label,
+.ck.ck-toolbar .ck-button .ck-icon {
+  color: #374151 !important; /* Tailwind's gray-700 */
+}
+

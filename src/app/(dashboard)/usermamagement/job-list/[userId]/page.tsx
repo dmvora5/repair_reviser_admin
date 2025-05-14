@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/pagination";
 import { format } from "date-fns";
 import { PAGE_SIZE } from "@/constant";
+import PageSizeSelector from "@/components/PageSizeSelector";
 
 const UserJobList = () => {
   const params = useParams();
@@ -19,11 +20,13 @@ const UserJobList = () => {
 
   const [state, setState] = useState({ page: 1, page_size: PAGE_SIZE });
   const currentPage = state.page;
-  const { data, isLoading, error, isSuccess } = useUserJobListQuery({
-    userId,
-    page: state.page,
-    page_size: state.page_size,
-  });
+  const { data, isLoading, error, isSuccess, isFetching } = useUserJobListQuery(
+    {
+      userId,
+      page: state.page,
+      page_size: state.page_size,
+    }
+  );
 
   const results = (data as any)?.results || [];
   const totalCount = (data as any)?.count || 0;
@@ -68,9 +71,9 @@ const UserJobList = () => {
           <table className="w-full border-collapse text-white">
             <thead>
               <tr className="space-x-1 flex">
-                <th className="py-3 px-4 w-[90px] justify-center min-w-[90px] flex font-medium text-[14px] bg-[#212B3EBF] rounded-[9px]">
+                {/* <th className="py-3 px-4 w-[90px] justify-center min-w-[90px] flex font-medium text-[14px] bg-[#212B3EBF] rounded-[9px]">
                   No.
-                </th>
+                </th> */}
                 <th className="py-3 px-4 flex-1 font-medium text-[14px] bg-[#212B3EBF] rounded-[9px]">
                   Job Name
                 </th>
@@ -89,7 +92,7 @@ const UserJobList = () => {
               </tr>
             </thead>
             <tbody>
-              {isLoading ? (
+              {isLoading || isFetching ? (
                 [...Array(PAGE_SIZE)].map((_, index) => (
                   <tr
                     key={index}
@@ -123,9 +126,9 @@ const UserJobList = () => {
                       key={index}
                       className="flex space-x-1 *:py-3 *:px-4 *:border-b *:border-[#162332] *:min-h-[48px] *:items-center *:flex *:text-[#8F9DAC] *:text-[14px]"
                     >
-                      <td className="w-[90px] justify-center min-w-[90px] flex">
+                      {/* <td className="w-[90px] justify-center min-w-[90px] flex">
                         {(currentPage - 1) * PAGE_SIZE + index + 1}
-                      </td>
+                      </td> */}
                       <td className="flex-1">{item.job_name}</td>
                       <td className="flex-1 capitalize">{item.type}</td>
                       <td className="flex-1 capitalize">
@@ -162,8 +165,8 @@ const UserJobList = () => {
         </div>
 
         {/* Pagination */}
-        {totalPages > 1 && (
-          <Pagination className="flex justify-center items-center mt-4">
+        <Pagination className="flex justify-center items-center mt-4">
+          {totalPages > 1 && (
             <PaginationContent className="flex space-x-2 bg-[#1E1E2E] p-3 rounded-lg shadow-md">
               <PaginationItem>
                 <button
@@ -212,8 +215,12 @@ const UserJobList = () => {
                 </button>
               </PaginationItem>
             </PaginationContent>
-          </Pagination>
-        )}
+          )}
+          <PageSizeSelector
+            value={state.page_size}
+            onChange={(newSize) => setState({ page: 1, page_size: newSize })}
+          />
+        </Pagination>
       </ApiState>
     </div>
   );

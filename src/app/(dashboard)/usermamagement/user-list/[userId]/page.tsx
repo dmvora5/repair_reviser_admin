@@ -11,8 +11,8 @@ import {
   PaginationItem,
 } from "@/components/ui/pagination";
 import ApiState from "@/components/ApiState";
-
-const PAGE_SIZE = 5;
+import { PAGE_SIZE } from "@/constant";
+import PageSizeSelector from "@/components/PageSizeSelector";
 
 const UserListByCompany = () => {
   const params = useParams();
@@ -27,18 +27,26 @@ const UserListByCompany = () => {
   } = useUserDetailsQuery(userId);
   const companyUsers = (userDetails as any)?.company || [];
 
+  // Pagination state
   const [currentPage, setCurrentPage] = useState(1);
-  const totalPages = Math.ceil(companyUsers.length / PAGE_SIZE);
+  const [pageSize, setPageSize] = useState(10); // default size
+
+  const totalPages = Math.ceil(companyUsers.length / pageSize);
 
   const paginatedUsers = companyUsers.slice(
-    (currentPage - 1) * PAGE_SIZE,
-    currentPage * PAGE_SIZE
+    (currentPage - 1) * pageSize,
+    currentPage * pageSize
   );
 
   const handlePageChange = (newPage: number) => {
     if (newPage > 0 && newPage <= totalPages) {
       setCurrentPage(newPage);
     }
+  };
+
+  const handlePageSizeChange = (newSize: number) => {
+    setPageSize(newSize);
+    setCurrentPage(1); // Reset to first page on size change
   };
 
   const renderPaginationNumbers = () => {
@@ -214,6 +222,7 @@ const UserListByCompany = () => {
             </PaginationItem>
           </PaginationContent>
         )}
+        <PageSizeSelector value={pageSize} onChange={handlePageSizeChange} />
       </Pagination>
     </div>
   );

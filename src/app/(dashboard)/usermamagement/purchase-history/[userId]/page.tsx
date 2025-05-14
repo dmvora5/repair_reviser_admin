@@ -12,6 +12,7 @@ import {
 } from "@/components/ui/pagination";
 import { format } from "date-fns";
 import { PAGE_SIZE } from "@/constant";
+import PageSizeSelector from "@/components/PageSizeSelector";
 
 const UserPurchaseHistory = () => {
   const params = useParams();
@@ -22,11 +23,12 @@ const UserPurchaseHistory = () => {
     page_size: PAGE_SIZE,
   });
 
-  const { data, isLoading, error, isSuccess } = useUserPurchaseHistoryQuery({
-    userId,
-    page: state.page,
-    page_size: state.page_size,
-  });
+  const { data, isLoading, error, isSuccess, isFetching } =
+    useUserPurchaseHistoryQuery({
+      userId,
+      page: state.page,
+      page_size: state.page_size,
+    });
 
   const results = (data as any)?.results || [];
   const totalCount = (data as any)?.count || 0;
@@ -72,9 +74,9 @@ const UserPurchaseHistory = () => {
           <table className="w-full border-collapse text-white">
             <thead>
               <tr className="space-x-1 flex">
-                <th className="py-3 px-4 w-[90px] justify-center min-w-[90px] flex font-medium text-[14px] bg-[#212B3EBF] rounded-[9px]">
+                {/* <th className="py-3 px-4 w-[90px] justify-center min-w-[90px] flex font-medium text-[14px] bg-[#212B3EBF] rounded-[9px]">
                   No.
-                </th>
+                </th> */}
                 <th className="py-3 px-4 flex-1 font-medium text-[14px] bg-[#212B3EBF] rounded-[9px]">
                   Credit Amount
                 </th>
@@ -84,15 +86,15 @@ const UserPurchaseHistory = () => {
               </tr>
             </thead>
             <tbody>
-              {isLoading ? (
+              {isLoading || isFetching ? (
                 [...Array(PAGE_SIZE)].map((_, index) => (
                   <tr
                     key={index}
                     className="flex space-x-1 animate-pulse *:py-3 *:px-4 *:border-b *:border-[#162332] *:min-h-[56px] *:items-center *:flex *:text-[#8F9DAC] *:text-[14px]"
                   >
-                    <td className="w-[90px] justify-center min-w-[90px] flex">
+                    {/* <td className="w-[90px] justify-center min-w-[90px] flex">
                       <div className="bg-gray-700 rounded-md h-5 w-5 mx-auto" />
-                    </td>
+                    </td> */}
                     <td className="flex-1">
                       <div className="bg-gray-700 rounded-md h-5 w-24" />
                     </td>
@@ -111,9 +113,9 @@ const UserPurchaseHistory = () => {
                       key={index}
                       className="flex space-x-1 *:py-3 *:px-4 *:border-b *:border-[#162332] *:min-h-[48px] *:items-center *:flex *:text-[#8F9DAC] *:text-[14px]"
                     >
-                      <td className="w-[90px] justify-center min-w-[90px] flex">
+                      {/* <td className="w-[90px] justify-center min-w-[90px] flex">
                         {(currentPage - 1) * PAGE_SIZE + index + 1}
-                      </td>
+                      </td> */}
                       <td className="flex-1">{item.credit_amount}</td>
                       <td className="flex-1">
                         {format(new Date(item.created_at), "yyyy-MM-dd")}
@@ -136,8 +138,8 @@ const UserPurchaseHistory = () => {
         </div>
 
         {/* Pagination */}
-        {totalPages > 1 && (
-          <Pagination className="flex justify-center items-center mt-4">
+        <Pagination className="flex justify-center items-center mt-4">
+          {totalPages > 1 && (
             <PaginationContent className="flex space-x-2 bg-[#1E1E2E] p-3 rounded-lg shadow-md">
               <PaginationItem>
                 <button
@@ -186,8 +188,12 @@ const UserPurchaseHistory = () => {
                 </button>
               </PaginationItem>
             </PaginationContent>
-          </Pagination>
-        )}
+          )}
+          <PageSizeSelector
+            value={state.page_size}
+            onChange={(newSize) => setState({ page: 1, page_size: newSize })}
+          />
+        </Pagination>
       </ApiState>
     </div>
   );
