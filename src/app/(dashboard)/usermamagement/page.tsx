@@ -2,15 +2,12 @@
 
 import { PlusIcon, View } from "lucide-react";
 import React, { useState } from "react";
-// import AddNewUserPopup from "./AddNewUserPopup";
 import {
   Pagination,
   PaginationContent,
   PaginationEllipsis,
   PaginationItem,
 } from "@/components/ui/pagination";
-// import UpdateUserPopup from "./UpdateUserPopup";
-// import CreatedSuccessfullyPopup from "../CreatedSuccessfullyPopup";
 import { useRouter } from "next/navigation";
 import { PAGE_SIZE } from "@/constant";
 import {
@@ -19,7 +16,8 @@ import {
 } from "@/redux/api/users.api";
 import ApiState from "@/components/ApiState";
 import { PAGE_ROUTES } from "@/constant/routes";
-import { Button } from "@/components/ui/button";
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Input } from "@/components/ui/input";
 import PageSizeSelector from "@/components/PageSizeSelector";
 
 interface StateType {
@@ -29,9 +27,11 @@ interface StateType {
 
 const page = () => {
   const router = useRouter();
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
-  console.log("isModalOpen", isModalOpen);
+  const [activeTab, setActiveTab] = useState<"company" | "individual">(
+    "company"
+  );
+  const [searchQuery, setSearchQuery] = useState("");
+  console.log("🚀 ~ page ~ searchQuery:", searchQuery)
 
   const [state, setState] = useState<StateType>({
     page: 1,
@@ -56,14 +56,12 @@ const page = () => {
 
   const { data, isLoading, error, isSuccess, isFetching } =
     useAllUsersListQuery(state);
-
   const { data: userDetails, isLoading: loadingDetails } = useUserDetailsQuery(
     editUser.userId!,
-    { skip: !editUser.open }
+    {
+      skip: !editUser.open,
+    }
   );
-  console.log("🚀 ~ page ~ userDetails:", userDetails);
-
-  console.log("data", data);
 
   const totalPages = Math.ceil(((data as any)?.count || 0) / state.page_size);
   const currentPage = state.page;
@@ -95,28 +93,57 @@ const page = () => {
     return pageNumbers;
   };
 
+  const filteredData = ((data as any)?.results || [])
+    .filter((user: any) =>
+      activeTab === "company" ? user.is_company_admin : !user.is_company_admin
+    )
+    .filter((user: any) =>
+      searchQuery
+        ? user.username?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          user.email?.toLowerCase().includes(searchQuery.toLowerCase())
+        : true
+    );
+
   return (
     <div className="flex flex-col flex-1">
       <ApiState isSuccess={isSuccess} error={error}>
         <ApiState.Error />
         <ApiState.ArthorizeCheck />
       </ApiState>
-      <div className="flex items-center mb-8">
-        <div className="flex flex-col flex-1">
+
+      {/* Page Header */}
+      <div className="flex items-center justify-between mb-8">
+        <div className="flex flex-col">
           <span className="font-medium text-[32px] leading-[130%] tracking-normal text-white mb-2">
-            Create New User
+            Users List
           </span>
           <span className="text-[#8F9DAC] text-[16px] leading-[130%] font-normal">
-            Create new user for your company.
+            All Users List
           </span>
         </div>
-        {/* <Button variant={"default"} onClick={() => setIsModalOpen(true)}>
-          <span className="text-[14px] font-medium leading-7">
-            Add New User
-          </span>
-          <PlusIcon className="w-[24px]" />
-        </Button> */}
       </div>
+
+      {/* Search & Tabs */}
+      <div className="flex justify-between items-center mb-4">
+        <Tabs
+          defaultValue="company"
+          value={activeTab}
+          onValueChange={(val: any) => setActiveTab(val)}
+        >
+          <TabsList className="bg-[#1E1E2E]">
+            <TabsTrigger value="company">Company Users</TabsTrigger>
+            <TabsTrigger value="individual">Individual Users</TabsTrigger>
+          </TabsList>
+        </Tabs>
+        <Input
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          placeholder="Search by username or email..."
+          className="w-[300px] bg-[#1E1E2E] border-none text-white"
+        />
+      </div>
+
+      {/* Table */}
       <div className="flex flex-col">
         <h3 className="text-white font-medium leading-[130%] text-[18px] tracking-normal mb-4 text-left">
           Users List
@@ -129,7 +156,7 @@ const page = () => {
                   Company User
                 </th>
                 <th className="py-3 px-4 flex-1 font-medium text-[14px] items-center flex leading-[130%] tracking-normal text-white bg-[#212B3EBF] rounded-[9px] min-h-[48px]">
-                  Customer Name
+                  Customer Email
                 </th>
                 <th className="py-3 px-4 min-w-max font-medium text-[14px] items-center flex leading-[130%] tracking-normal text-white bg-[#212B3EBF] rounded-[9px] min-h-[48px]">
                   Created On
@@ -140,57 +167,62 @@ const page = () => {
               </tr>
             </thead>
             <tbody>
-              {isFetching
-                ? // Loading Skeleton Rows
-                  [...Array(5)].map((_, index) => (
-                    <tr
-                      key={index}
-                      className="flex space-x-1 animate-pulse *:px-4 *:border-b *:border-[#162332] *:min-h-[56px] *:items-center *:flex *:text-[#8F9DAC] *:text-[14px] *:font-normal *:leading-[130%] *:tracking-normal"
-                    >
-                      <td className="flex-1">
-                        <div className="bg-gray-700 rounded-md h-6 w-32"></div>
-                      </td>
-                      <td className="min-w-[176px]">
-                        <div className="bg-gray-700 rounded-md h-6 w-20"></div>
-                      </td>
-                      <td className="min-w-[176px]">
-                        <div className="bg-gray-700 rounded-md h-6 w-24"></div>
-                      </td>
-                      <td className="w-[92px] justify-center min-w-[92px] flex items-center space-x-2">
-                        <div className="bg-gray-700 rounded-md h-6 w-6"></div>
-                      </td>
-                    </tr>
-                  ))
-                : ((data as any)?.results || []).map((ele: any) => (
-                    <tr
-                      key={ele?.id}
-                      className="flex space-x-1 *:py-3 *:px-4 *:border-b *:border-[#162332] *:min-h-[48px] *:items-center *:flex *:text-[#8F9DAC] *:text-[14px] *:font-normal *:leading-[130%] *:tracking-normal"
-                    >
-                      <td className="w-[90px] justify-center min-w-[90px]">
-                        {ele?.is_company_admin ? "Yes" : "No"}
-                      </td>
-                      <td className="flex-1">{ele?.username}</td>
-                      <td className="min-w-fit">05/07/2024</td>
-                      <td className="w-[92px] justify-center min-w-[92px] space-x-2">
-                        {/* <button className="text-[#DE3140] hover:text-red-400">
-                          <Trash2 className="w-[20px]" />
-                        </button> */}
-                        <button
-                          onClick={editUserHadler.bind(null, ele)}
-                          className="text-[#62ee21] hover:text-green-400"
-                        >
-                          <View className="w-[20px]" />
-                        </button>
-                      </td>
-                    </tr>
-                  ))}
+              {isFetching ? (
+                [...Array(5)].map((_, index) => (
+                  <tr
+                    key={index}
+                    className="flex space-x-1 animate-pulse *:px-4 *:border-b *:border-[#162332] *:min-h-[56px] *:items-center *:flex *:text-[#8F9DAC] *:text-[14px] *:font-normal *:leading-[130%] *:tracking-normal"
+                  >
+                    <td className="flex-1">
+                      <div className="bg-gray-700 rounded-md h-6 w-32"></div>
+                    </td>
+                    <td className="min-w-[176px]">
+                      <div className="bg-gray-700 rounded-md h-6 w-20"></div>
+                    </td>
+                    <td className="min-w-[176px]">
+                      <div className="bg-gray-700 rounded-md h-6 w-24"></div>
+                    </td>
+                    <td className="w-[92px] justify-center min-w-[92px] flex items-center space-x-2">
+                      <div className="bg-gray-700 rounded-md h-6 w-6"></div>
+                    </td>
+                  </tr>
+                ))
+              ) : filteredData.length === 0 ? (
+                <tr className="flex justify-center text-white w-full py-8">
+                  <td colSpan={4} className="text-center text-gray-400 py-6">
+                    No users found.
+                  </td>
+                </tr>
+              ) : (
+                filteredData.map((ele: any) => (
+                  <tr
+                    key={ele?.id}
+                    className="flex space-x-1 *:py-3 *:px-4 *:border-b *:border-[#162332] *:min-h-[48px] *:items-center *:flex *:text-[#8F9DAC] *:text-[14px] *:font-normal *:leading-[130%] *:tracking-normal"
+                  >
+                    <td className="w-[90px] justify-center min-w-[90px]">
+                      {ele?.is_company_admin ? "Yes" : "No"}
+                    </td>
+                    <td className="flex-1">{ele?.username}</td>
+                    <td className="min-w-fit">05/07/2024</td>
+                    <td className="w-[92px] justify-center min-w-[92px] space-x-2">
+                      <button
+                        onClick={editUserHadler.bind(null, ele)}
+                        className="text-[#62ee21] hover:text-green-400"
+                      >
+                        <View className="w-[20px]" />
+                      </button>
+                    </td>
+                  </tr>
+                ))
+              )}
             </tbody>
           </table>
         </div>
+
+        {/* Pagination */}
         <Pagination className="flex justify-center items-center mt-4">
           {totalPages > 1 && (
             <PaginationContent className="flex space-x-2 bg-[#1E1E2E] p-3 rounded-lg shadow-md">
-              {/* Previous Button */}
               <PaginationItem>
                 <button
                   className={`px-4 py-2 rounded-md transition-all ${
@@ -205,7 +237,6 @@ const page = () => {
                 </button>
               </PaginationItem>
 
-              {/* Page Numbers */}
               {renderPaginationNumbers().map((page, index) => (
                 <PaginationItem key={index}>
                   {page === "..." ? (
@@ -225,7 +256,6 @@ const page = () => {
                 </PaginationItem>
               ))}
 
-              {/* Next Button */}
               <PaginationItem>
                 <button
                   className={`px-4 py-2 rounded-md transition-all ${
@@ -247,6 +277,8 @@ const page = () => {
           />
         </Pagination>
       </div>
+
+      {/* User Details Modal */}
       {editUser.open && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
           <div className="bg-[#1E1E2E] p-6 rounded-xl w-[600px] max-h-[80vh] overflow-y-auto">
@@ -256,8 +288,6 @@ const page = () => {
                 ✕
               </button>
             </div>
-
-            {/* User Details Section */}
             <div className="bg-gray-800 p-4 rounded-md text-white space-y-2 mb-6">
               {loadingDetails ? (
                 <p>Loading user details...</p>
@@ -280,57 +310,45 @@ const page = () => {
               )}
             </div>
 
-            {/* Action Buttons */}
-            {loadingDetails ? (
-              <></>
-            ) : (
-              <>
-                <div className="grid grid-cols-2 gap-4">
-                  {(userDetails as any)?.user?.is_company_admin && (
-                    <button
-                      className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
-                      onClick={() =>
-                        router.push(
-                          `${PAGE_ROUTES.USERLIST}/${editUser.userId}`
-                        )
-                      }
-                    >
-                      Go to Users List
-                    </button>
-                  )}
-
+            {!loadingDetails && (
+              <div className="grid grid-cols-2 gap-4">
+                {(userDetails as any)?.user?.is_company_admin && (
                   <button
-                    className="bg-gray-700 text-white px-4 py-2 rounded-md hover:bg-gray-600"
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
                     onClick={() =>
-                      router.push(
-                        `${PAGE_ROUTES.PURCHASEHISTORY}/${editUser.userId}`
-                      )
+                      router.push(`${PAGE_ROUTES.USERLIST}/${editUser.userId}`)
                     }
                   >
-                    View Purchase History
+                    Go to Users List
                   </button>
-
-                  <button
-                    className="bg-gray-700 text-white px-4 py-2 rounded-md hover:bg-gray-600"
-                    onClick={() =>
-                      router.push(
-                        `${PAGE_ROUTES.CREDITUSAGE}/${editUser.userId}`
-                      )
-                    }
-                  >
-                    View Credit Usage
-                  </button>
-
-                  <button
-                    className="bg-gray-700 text-white px-4 py-2 rounded-md hover:bg-gray-600"
-                    onClick={() =>
-                      router.push(`${PAGE_ROUTES.JOBLIST}/${editUser.userId}`)
-                    }
-                  >
-                    View Job List
-                  </button>
-                </div>
-              </>
+                )}
+                <button
+                  className="bg-gray-700 text-white px-4 py-2 rounded-md hover:bg-gray-600"
+                  onClick={() =>
+                    router.push(
+                      `${PAGE_ROUTES.PURCHASEHISTORY}/${editUser.userId}`
+                    )
+                  }
+                >
+                  View Purchase History
+                </button>
+                <button
+                  className="bg-gray-700 text-white px-4 py-2 rounded-md hover:bg-gray-600"
+                  onClick={() =>
+                    router.push(`${PAGE_ROUTES.CREDITUSAGE}/${editUser.userId}`)
+                  }
+                >
+                  View Credit Usage
+                </button>
+                <button
+                  className="bg-gray-700 text-white px-4 py-2 rounded-md hover:bg-gray-600"
+                  onClick={() =>
+                    router.push(`${PAGE_ROUTES.JOBLIST}/${editUser.userId}`)
+                  }
+                >
+                  View Job List
+                </button>
+              </div>
             )}
           </div>
         </div>

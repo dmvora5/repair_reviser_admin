@@ -191,7 +191,6 @@ const PriceListPage = () => {
                   </th>
                 </tr>
               </thead>
-
               <tbody>
                 {isLoading || isFetching
                   ? [...Array(5)].map((_, index) => (
@@ -219,7 +218,9 @@ const PriceListPage = () => {
                   : (data as any)?.results?.map((price: any) => (
                       <tr
                         key={price.id}
-                        className="flex space-x-1 *:py-3 *:px-4 *:border-b *:border-[#162332] *:min-h-[48px] *:items-center *:flex *:text-[#8F9DAC] *:text-[14px] *:font-normal *:leading-[130%] *:tracking-normal"
+                        className={`flex space-x-1 *:py-3 *:px-4 *:border-b *:border-[#162332] *:min-h-[48px] *:items-center *:flex *:text-[#8F9DAC] *:text-[14px] *:font-normal *:leading-[130%] *:tracking-normal ${
+                          price.is_default ? "bg-[#2A3748] mt-2 rounded-lg" : ""
+                        }`}
                       >
                         <td className="w-[90px] justify-center">
                           {price.credit_amount}
@@ -328,7 +329,7 @@ const PriceListPage = () => {
                 </DialogTitle>
               </DialogHeader>
               <div className="space-y-4 mt-4">
-                <Input
+                {/* <Input
                   type="number"
                   placeholder="Credit Amount"
                   value={formData.credit_amount}
@@ -339,7 +340,7 @@ const PriceListPage = () => {
                       credit_amount: Number(e.target.value),
                     }))
                   }
-                />
+                /> */}
                 <Input
                   type="number"
                   step="0.01"

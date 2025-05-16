@@ -43,8 +43,6 @@ const Editor: React.FC = () => {
     router.push(`/privacy-terms/editor?${queryParams.toString()}`);
   };
 
-  if (isLoading) return <p>Loading...</p>;
-
   return (
     <>
       <div className="p-4">
@@ -79,7 +77,7 @@ const Editor: React.FC = () => {
 
                 <tbody>
                   {/* Skeleton Loaders */}
-                  {isFetching ? (
+                  {isLoading || isFetching ? (
                     [...Array(5)].map((_, index) => (
                       <tr
                         key={index}
