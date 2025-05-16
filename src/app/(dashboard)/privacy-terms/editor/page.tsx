@@ -7,16 +7,19 @@ import { useUpdatePrivacyMutation } from "@/redux/api/users.api";
 
 const PrivacyEditorPage = () => {
   const router = useRouter();
-  const searchParams = useSearchParams();
+  // const searchParams = useSearchParams();
 
-  const type = searchParams.get("type");
-  const id = searchParams.get("id");
-  const initialData = searchParams.get("data");
+  // const type = searchParams.get("type");
+  // const id = searchParams.get("id");
+  // const initialData = searchParams.get("data");
 
-  const data = searchParams.get("data") ?? "";
-  const decodedHtml = decodeURIComponent(data);
+  // const data = searchParams.get("data") ?? "";
 
-  const [editorData, setEditorData] = useState<string>(initialData || "");
+  const id =""
+  const type: any = ""
+  // const decodedHtml = decodeURIComponent(data);
+
+  const [editorData, setEditorData] = useState<string>("");
   const [updatePrivacy, { isLoading }] = useUpdatePrivacyMutation();
 
   const handleUpdate = async () => {
