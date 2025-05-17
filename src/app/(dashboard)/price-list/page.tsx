@@ -174,9 +174,9 @@ const PriceListPage = () => {
             <table className="w-full border-collapse text-white">
               <thead>
                 <tr className="space-x-1 flex">
-                  <th className="py-3 px-4 w-[90px] justify-center min-w-[90px] items-center flex font-medium text-[14px] leading-[130%] tracking-normal text-white bg-[#212B3EBF] rounded-[9px] min-h-[48px]">
+                  {/* <th className="py-3 px-4 w-[90px] justify-center min-w-[90px] items-center flex font-medium text-[14px] leading-[130%] tracking-normal text-white bg-[#212B3EBF] rounded-[9px] min-h-[48px]">
                     Credit
-                  </th>
+                  </th> */}
                   <th className="py-3 px-4 w-[90px] justify-center min-w-[90px] items-center flex font-medium text-[14px] leading-[130%] tracking-normal text-white bg-[#212B3EBF] rounded-[9px] min-h-[48px]">
                     Price
                   </th>
@@ -198,9 +198,9 @@ const PriceListPage = () => {
                         key={index}
                         className="flex space-x-1 animate-pulse *:px-4 *:border-b *:border-[#162332] *:min-h-[56px] *:items-center *:flex *:text-[#8F9DAC] *:text-[14px] *:font-normal *:leading-[130%] *:tracking-normal"
                       >
-                        <td className="w-[90px]">
+                        {/* <td className="w-[90px]">
                           <div className="bg-gray-700 rounded-md h-6 w-16"></div>
-                        </td>
+                        </td> */}
                         <td className="w-[90px]">
                           <div className="bg-gray-700 rounded-md h-6 w-16"></div>
                         </td>
@@ -222,9 +222,9 @@ const PriceListPage = () => {
                           price.is_default ? "bg-[#2A3748] mt-2 rounded-lg" : ""
                         }`}
                       >
-                        <td className="w-[90px] justify-center">
+                        {/* <td className="w-[90px] justify-center">
                           {price.credit_amount}
-                        </td>
+                        </td> */}
                         <td className="w-[90px] justify-center">
                           ${price.price}
                         </td>
