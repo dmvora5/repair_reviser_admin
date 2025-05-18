@@ -23,8 +23,7 @@ import PageSizeSelector from "@/components/PageSizeSelector";
 interface StateType {
   page: number;
   page_size: number;
-  is_company_admin?: 1;
-  is_individual?: 1;
+  user_type: "company" | "individual";
   search?: string;
 }
 
@@ -40,20 +39,15 @@ const page = () => {
   const [state, setState] = useState<StateType>({
     page: 1,
     page_size: PAGE_SIZE,
-    is_company_admin: 1,
+    user_type: "company",
     search: "",
   });
 
   useEffect(() => {
-    const tabState: Partial<StateType> =
-      activeTab === "company"
-        ? { is_company_admin: 1, is_individual: undefined }
-        : { is_company_admin: undefined, is_individual: 1 };
-
     setState((prev) => ({
       ...prev,
-      ...tabState,
-      page: 1, // reset to page 1 on tab switch
+      user_type: activeTab,
+      page: 1,
     }));
   }, [activeTab]);
 
@@ -62,7 +56,7 @@ const page = () => {
       setState((prev) => ({
         ...prev,
         search: searchQuery,
-        page: 1, // reset to page 1 on search
+        page: 1,
       }));
     }, 500);
 
@@ -223,7 +217,6 @@ const page = () => {
                     className="flex space-x-1 *:py-3 *:px-4 *:border-b *:border-[#162332] *:min-h-[48px] *:items-center *:flex *:text-[#8F9DAC] *:text-[14px] *:font-normal *:leading-[130%] *:tracking-normal"
                   >
                     <td className="w-[90px] justify-center min-w-[90px]">
-                      {/* {ele?.is_company_admin ? "Yes" : "No"} */}
                       {ele?.id}
                     </td>
                     <td className="flex-1">{ele?.email}</td>
@@ -304,7 +297,80 @@ const page = () => {
         </Pagination>
       </div>
 
-      {/* Modal code remains the same */}
+      {editUser.open && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
+          <div className="bg-[#1E1E2E] p-6 rounded-xl w-[600px] max-h-[80vh] overflow-y-auto">
+            <div className="flex justify-between items-center mb-4">
+              <h2 className="text-white text-xl font-semibold">User Info</h2>
+              <button onClick={closeModal} className="text-white text-xl">
+                ✕
+              </button>
+            </div>
+            <div className="bg-gray-800 p-4 rounded-md text-white space-y-2 mb-6">
+              {loadingDetails ? (
+                <p>Loading user details...</p>
+              ) : (
+                <>
+                  <p>
+                    <strong>Username:</strong>{" "}
+                    {(userDetails as any)?.user?.username}
+                  </p>
+                  <p>
+                    <strong>Email:</strong> {(userDetails as any)?.user?.email}
+                  </p>
+                  <p>
+                    <strong>Role:</strong>{" "}
+                    {(userDetails as any)?.user?.is_company_admin
+                      ? "Company Admin"
+                      : "User"}
+                  </p>
+                </>
+              )}
+            </div>
+
+            {!loadingDetails && (
+              <div className="grid grid-cols-2 gap-4">
+                {(userDetails as any)?.user?.is_company_admin && (
+                  <button
+                    className="bg-blue-600 text-white px-4 py-2 rounded-md hover:bg-blue-700"
+                    onClick={() =>
+                      router.push(`${PAGE_ROUTES.USERLIST}/${editUser.userId}`)
+                    }
+                  >
+                    Go to Users List
+                  </button>
+                )}
+                <button
+                  className="bg-gray-700 text-white px-4 py-2 rounded-md hover:bg-gray-600"
+                  onClick={() =>
+                    router.push(
+                      `${PAGE_ROUTES.PURCHASEHISTORY}/${editUser.userId}`
+                    )
+                  }
+                >
+                  View Purchase History
+                </button>
+                <button
+                  className="bg-gray-700 text-white px-4 py-2 rounded-md hover:bg-gray-600"
+                  onClick={() =>
+                    router.push(`${PAGE_ROUTES.CREDITUSAGE}/${editUser.userId}`)
+                  }
+                >
+                  View Credit Usage
+                </button>
+                <button
+                  className="bg-gray-700 text-white px-4 py-2 rounded-md hover:bg-gray-600"
+                  onClick={() =>
+                    router.push(`${PAGE_ROUTES.JOBLIST}/${editUser.userId}`)
+                  }
+                >
+                  View Job List
+                </button>
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
