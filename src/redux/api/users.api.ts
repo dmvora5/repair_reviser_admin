@@ -123,10 +123,6 @@ export const userApi = createApi({
         } else if (payload.type === "terms_condition_text") {
           body.terms_condition_text = payload.value;
         } else if (payload.type === "faq") {
-          // body.f_a_q = {
-          //   id: payload.id,
-          //   answer: payload.answer,
-          // };
           body.f_a_q = payload.value;
         }
 

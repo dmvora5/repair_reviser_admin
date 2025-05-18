@@ -172,6 +172,10 @@
   border-bottom: 1px solid #e5e7eb; /* light border between toolbar and editor */
 }
 
+.ck.ck-editor__main{
+  padding: 2rem;
+}
+
 /* Text editing area white */
 .ck.ck-editor__main > .ck-editor__editable {
   background-color: #ffffff !important;

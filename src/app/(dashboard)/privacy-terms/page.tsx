@@ -1,10 +1,15 @@
 "use client";
 
 import React, { useState } from "react";
-import { useGetPrivacyListQuery } from "@/redux/api/users.api";
+import CkEditor from "@/components/CkEditor";
+import {
+  useGetPrivacyListQuery,
+  useUpdatePrivacyMutation,
+} from "@/redux/api/users.api";
 import ApiState from "@/components/ApiState";
 import { Pencil } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Button } from "@/components/ui/button";
 
 interface PrivacyListType {
   privacy_text: string;
@@ -12,8 +17,13 @@ interface PrivacyListType {
   f_a_q: { id: string; title: string; description: string }[];
 }
 
+const LoadingOverlay = () => (
+  <div className="fixed inset-0 z-50 bg-black bg-opacity-60 flex items-center justify-center">
+    <div className="text-white text-lg">Loading...</div>
+  </div>
+);
+
 const Editor: React.FC = () => {
-  const router = useRouter();
   const {
     data: privacyList,
     isLoading,
@@ -30,164 +40,183 @@ const Editor: React.FC = () => {
     isFetching: boolean;
   };
 
-  const handleEditClick = (type: string, item: any) => {
-    const id = item.id || type;
-    const data = item.description || item;
+  const [updatePrivacy, { isLoading: isUpdatePrivacyLoading }] =
+    useUpdatePrivacyMutation();
 
-    const queryParams = new URLSearchParams({
-      type,
-      id,
-      data: data,
-    });
+  const [editorData, setEditorData] = useState<string>("");
+  const [editingType, setEditingType] = useState<string | null>(null);
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [tabLoading, setTabLoading] = useState(false);
+  const [activeTab, setActiveTab] = useState("privacy_text");
 
-    router.push(`/privacy-terms/editor?${queryParams.toString()}`);
+  const handleOnUpdate = (editor: string, field: string): void => {
+    if (field === "description") {
+      setEditorData(editor);
+    }
+  };
+
+  const handleEditClick = (type: string, value: any, id?: string) => {
+    setEditingType(type);
+    setEditorData(value);
+    setIsModalOpen(true);
+  };
+
+  const handleCloseModal = () => {
+    setIsModalOpen(false);
+    setEditingType(null);
+    setEditorData("");
+  };
+
+  const handleUpdate = async () => {
+    try {
+      await updatePrivacy({
+        type: editingType, // "privacy_text", "terms_condition_text", or "f_a_q"
+        value: editorData, // Direct value for all types
+      }).unwrap();
+      handleCloseModal();
+    } catch (err) {
+      console.error("Update failed", err);
+    }
+  };
+
+  const handleTabChange = (value: string) => {
+    setTabLoading(true);
+    setActiveTab(value);
+    setTimeout(() => setTabLoading(false), 300);
   };
 
   return (
-    <>
-      <div className="p-4">
-        <ApiState isSuccess={isSuccess} error={error}>
-          <ApiState.Error />
-          <ApiState.ArthorizeCheck />
+    <div className="p-6">
+      <ApiState isSuccess={isSuccess} error={error}>
+        <ApiState.Error />
+        <ApiState.ArthorizeCheck />
 
-          <div className="flex items-center mb-8">
-            <div className="flex flex-col flex-1">
-              <span className="font-medium text-[32px] leading-[130%] tracking-normal text-white mb-2">
-                PRIVACY AND TERMS
-              </span>
+        <div className="mb-6">
+          <h1 className="text-white text-3xl font-semibold mb-2">
+            Privacy & Terms Management
+          </h1>
+        </div>
+
+        <Tabs
+          value={activeTab}
+          onValueChange={handleTabChange}
+          className="w-full"
+        >
+          <TabsList className="mb-4">
+            <TabsTrigger value="privacy_text">Privacy Policy</TabsTrigger>
+            <TabsTrigger value="terms_condition_text">
+              Terms & Conditions
+            </TabsTrigger>
+            <TabsTrigger value="f_a_q">FAQs</TabsTrigger>
+          </TabsList>
+
+          {/* Privacy Policy Tab */}
+          <TabsContent value="privacy_text">
+            <div className="bg-[#1A2230] p-4 rounded-md text-white">
+              <Button
+                onClick={() =>
+                  handleEditClick("privacy_text", privacyList?.privacy_text)
+                }
+                className="mb-4"
+                variant="secondary"
+              >
+                <Pencil className="w-4 h-4 mr-2" /> Edit Privacy Policy
+              </Button>
+              <div
+                className="prose max-w-none"
+                dangerouslySetInnerHTML={{
+                  __html: privacyList?.privacy_text || "",
+                }}
+              />
+            </div>
+          </TabsContent>
+
+          {/* Terms & Conditions Tab */}
+          <TabsContent value="terms_condition_text">
+            <div className="bg-[#1A2230] p-4 rounded-md text-white">
+              <Button
+                onClick={() =>
+                  handleEditClick(
+                    "terms_condition_text",
+                    privacyList?.terms_condition_text
+                  )
+                }
+                className="mb-4"
+                variant="secondary"
+              >
+                <Pencil className="w-4 h-4 mr-2" /> Edit Terms & Conditions
+              </Button>
+              <div
+                className="prose max-w-none"
+                dangerouslySetInnerHTML={{
+                  __html: privacyList?.terms_condition_text || "",
+                }}
+              />
+            </div>
+          </TabsContent>
+
+          {/* FAQ Tab */}
+          <TabsContent value="f_a_q">
+            <div className="bg-[#1A2230] p-4 rounded-md text-white">
+              <Button
+                onClick={() => handleEditClick("faq", privacyList?.f_a_q)}
+                className="mb-4"
+                variant="secondary"
+              >
+                <Pencil className="w-4 h-4 mr-2" /> Edit FAQ
+              </Button>
+
+              <div
+                className="prose max-w-none"
+                dangerouslySetInnerHTML={{
+                  __html: privacyList?.f_a_q || "",
+                }}
+              />
+            </div>
+          </TabsContent>
+        </Tabs>
+
+        {/* Modal with CKEditor */}
+        {isModalOpen && (
+          <div className="fixed inset-0 z-50 bg-black bg-opacity-60 flex items-center justify-center">
+            <div className="bg-[#1A2230] p-6 rounded-md w-[90%] max-w-3xl shadow-lg relative">
+              <h3 className="text-white font-medium text-[18px] mb-4">
+                Edit Content
+              </h3>
+
+              <CkEditor
+                editorData={editorData}
+                setEditorData={setEditorData}
+                handleOnUpdate={handleOnUpdate}
+              />
+
+              <div className="mt-4 flex justify-end space-x-3">
+                <Button variant="secondary" onClick={handleCloseModal}>
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleUpdate}
+                  disabled={isUpdatePrivacyLoading}
+                >
+                  {isUpdatePrivacyLoading ? "Updating..." : "Update"}
+                </Button>
+              </div>
+
+              <button
+                onClick={handleCloseModal}
+                className="absolute top-3 right-3 text-white hover:text-red-500 text-xl"
+              >
+                ✕
+              </button>
             </div>
           </div>
-
-          <div className="flex flex-col">
-            <div className="w-full">
-              <table className="w-full border-collapse text-white">
-                <thead>
-                  <tr className="space-x-1 flex">
-                    <th className="py-3 px-4 w-[200px] min-w-[200px] items-center flex font-medium text-[14px] leading-[130%] tracking-normal text-white bg-[#212B3EBF] rounded-[9px] min-h-[48px]">
-                      Title
-                    </th>
-                    <th className="py-3 px-4 flex-1 font-medium text-[14px] items-center flex leading-[130%] tracking-normal text-white bg-[#212B3EBF] rounded-[9px] min-h-[48px]">
-                      Description
-                    </th>
-                    <th className="py-3 px-4 w-[92px] justify-center min-w-[92px] font-medium text-[14px] items-center flex leading-[130%] tracking-normal text-white bg-[#212B3EBF] rounded-[9px] min-h-[48px] text-center">
-                      Actions
-                    </th>
-                  </tr>
-                </thead>
-
-                <tbody>
-                  {/* Skeleton Loaders */}
-                  {isLoading || isFetching ? (
-                    [...Array(5)].map((_, index) => (
-                      <tr
-                        key={index}
-                        className="flex space-x-1 animate-pulse *:px-4 *:border-b *:border-[#162332] *:min-h-[56px] *:items-center *:flex *:text-[#8F9DAC] *:text-[14px] *:font-normal *:leading-[130%] *:tracking-normal"
-                      >
-                        <td className="w-[200px]">
-                          <div className="bg-gray-700 rounded-md h-6 w-32"></div>
-                        </td>
-                        <td className="flex-1">
-                          <div className="bg-gray-700 rounded-md h-6 w-48"></div>
-                        </td>
-                        <td className="w-[92px] flex justify-center space-x-2">
-                          <div className="bg-gray-700 rounded-md h-6 w-6"></div>
-                        </td>
-                      </tr>
-                    ))
-                  ) : (
-                    <React.Fragment key="static">
-                      {/* Static Privacy Text */}
-                      <tr
-                        key="privacy"
-                        className="flex space-x-1 *:py-3 *:px-4 *:border-b *:border-[#162332] *:min-h-[48px] *:items-center *:flex *:text-[#8F9DAC] *:text-[14px] *:font-normal *:leading-[130%] *:tracking-normal"
-                      >
-                        <td className="w-[200px]">Privacy Policy</td>
-                        <td className="flex-1">
-                          <div
-                            className="text-sm line-clamp-3"
-                            dangerouslySetInnerHTML={{
-                              __html: privacyList?.privacy_text || "",
-                            }}
-                          />
-                        </td>
-                        <td className="w-[92px] justify-center space-x-2">
-                          <button
-                            onClick={() =>
-                              handleEditClick(
-                                "privacy_text",
-                                privacyList?.privacy_text
-                              )
-                            }
-                            className="text-blue-400 hover:text-blue-600"
-                          >
-                            <Pencil className="w-[20px]" />
-                          </button>
-                        </td>
-                      </tr>
-
-                      {/* Static Terms and Conditions */}
-                      <tr
-                        key="terms"
-                        className="flex space-x-1 *:py-3 *:px-4 *:border-b *:border-[#162332] *:min-h-[48px] *:items-center *:flex *:text-[#8F9DAC] *:text-[14px] *:font-normal *:leading-[130%] *:tracking-normal"
-                      >
-                        <td className="w-[200px]">Terms & Conditions</td>
-                        <td className="flex-1">
-                          <div
-                            className="text-sm line-clamp-3"
-                            dangerouslySetInnerHTML={{
-                              __html: privacyList?.terms_condition_text || "",
-                            }}
-                          />
-                        </td>
-                        <td className="w-[92px] justify-center space-x-2">
-                          <button
-                            onClick={() =>
-                              handleEditClick(
-                                "terms_condition_text",
-                                privacyList?.terms_condition_text
-                              )
-                            }
-                            className="text-blue-400 hover:text-blue-600"
-                          >
-                            <Pencil className="w-[20px]" />
-                          </button>
-                        </td>
-                      </tr>
-
-                      {/* FAQs */}
-                      <tr
-                        key="faq"
-                        className="flex space-x-1 *:py-3 *:px-4 *:border-b *:border-[#162332] *:min-h-[48px] *:items-center *:flex *:text-[#8F9DAC] *:text-[14px] *:font-normal *:leading-[130%] *:tracking-normal"
-                      >
-                        <td className="w-[200px]">FAQ</td>
-                        <td className="flex-1">
-                          <div
-                            className="text-sm line-clamp-3"
-                            dangerouslySetInnerHTML={{
-                              __html: privacyList?.f_a_q || "",
-                            }}
-                          />
-                        </td>
-                        <td className="w-[92px] justify-center space-x-2">
-                          <button
-                            onClick={() =>
-                              handleEditClick("faq", privacyList?.f_a_q)
-                            }
-                            className="text-blue-400 hover:text-blue-600"
-                          >
-                            <Pencil className="w-[20px]" />
-                          </button>
-                        </td>
-                      </tr>
-                    </React.Fragment>
-                  )}
-                </tbody>
-              </table>
-            </div>
-          </div>
-        </ApiState>
-      </div>
-    </>
+        )}
+        {/* Global Loading Overlay */}
+        {(isLoading || isFetching || tabLoading || isUpdatePrivacyLoading) && (
+          <LoadingOverlay />
+        )}
+      </ApiState>
+    </div>
   );
 };
 
