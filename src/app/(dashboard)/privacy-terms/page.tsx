@@ -178,9 +178,9 @@ const Editor: React.FC = () => {
 
         {/* Modal with CKEditor */}
         {isModalOpen && (
-          <div className="fixed inset-0 z-50 bg-black bg-opacity-60 flex items-center justify-center">
-            <div className="bg-[#1A2230] p-6 rounded-md w-[90%] max-w-3xl shadow-lg relative">
-              <h3 className="text-white font-medium text-[18px] mb-4">
+          <div className="fixed inset-0 z-50 bg-black bg-opacity-60 flex items-center justify-center px-2 sm:px-4">
+            <div className="bg-[#1A2230] p-4 sm:p-6 rounded-md w-full max-w-3xl shadow-lg relative max-h-[91vh] overflow-y-auto">
+              <h3 className="text-white font-medium text-lg sm:text-xl mb-4">
                 Edit Content
               </h3>
 
@@ -190,13 +190,18 @@ const Editor: React.FC = () => {
                 handleOnUpdate={handleOnUpdate}
               />
 
-              <div className="mt-4 flex justify-end space-x-3">
-                <Button variant="secondary" onClick={handleCloseModal}>
+              <div className="mt-4 flex flex-col sm:flex-row justify-end sm:space-x-3 space-y-3 sm:space-y-0">
+                <Button
+                  variant="secondary"
+                  onClick={handleCloseModal}
+                  className="w-full sm:w-auto"
+                >
                   Cancel
                 </Button>
                 <Button
                   onClick={handleUpdate}
                   disabled={isUpdatePrivacyLoading}
+                  className="w-full sm:w-auto"
                 >
                   {isUpdatePrivacyLoading ? "Updating..." : "Update"}
                 </Button>
@@ -204,13 +209,14 @@ const Editor: React.FC = () => {
 
               <button
                 onClick={handleCloseModal}
-                className="absolute top-3 right-3 text-white hover:text-red-500 text-xl"
+                className="absolute top-2 sm:top-3 right-2 sm:right-3 text-white hover:text-red-500 text-xl"
               >
                 ✕
               </button>
             </div>
           </div>
         )}
+
         {/* Global Loading Overlay */}
         {(isLoading || isFetching || tabLoading || isUpdatePrivacyLoading) && (
           <LoadingOverlay />
