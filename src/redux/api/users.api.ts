@@ -122,7 +122,7 @@ export const userApi = createApi({
           body.privacy_text = payload.value;
         } else if (payload.type === "terms_condition_text") {
           body.terms_condition_text = payload.value;
-        } else if (payload.type === "faq") {
+        } else if (payload.type === "f_a_q") {
           body.f_a_q = payload.value;
         }
 

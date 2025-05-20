@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import CkEditor from "@/components/CkEditor";
 import {
   useGetPrivacyListQuery,
@@ -48,6 +48,16 @@ const Editor: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [tabLoading, setTabLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("privacy_text");
+  const [faqList, setFaqList] = useState<any[]>([]);
+  const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
+  const [savingIndex, setSavingIndex] = useState<number | null>(null);
+
+  // Update faqList when privacyList.f_a_q becomes available
+  useEffect(() => {
+    if (privacyList?.f_a_q && Array.isArray(privacyList.f_a_q)) {
+      setFaqList(privacyList.f_a_q);
+    }
+  }, [privacyList]);
 
   const handleOnUpdate = (editor: string, field: string): void => {
     if (field === "description") {
@@ -83,6 +93,35 @@ const Editor: React.FC = () => {
     setTabLoading(true);
     setActiveTab(value);
     setTimeout(() => setTabLoading(false), 300);
+  };
+
+  const handleFaqChange = (
+    index: number,
+    field: "question" | "answer",
+    value: string
+  ) => {
+    setFaqList((prevFaqList) => {
+      const updated = [...prevFaqList];
+      updated[index] = { ...updated[index], [field]: value };
+      return updated;
+    });
+  };
+
+  const handleFaqSave = async (index: number) => {
+    try {
+      setSavingIndex(index); // Set saving state
+      await updatePrivacy({
+        type: "f_a_q",
+        value: faqList,
+      }).unwrap();
+
+      // Close the expanded section and reset saving state
+      setExpandedFaq(null);
+      setSavingIndex(null);
+    } catch (err) {
+      console.error("FAQ update error:", err);
+      setSavingIndex(null);
+    }
   };
 
   return (
@@ -156,7 +195,7 @@ const Editor: React.FC = () => {
           </TabsContent>
 
           {/* FAQ Tab */}
-          <TabsContent value="f_a_q">
+          {/* <TabsContent value="f_a_q">
             <div className="bg-[#1A2230] p-4 rounded-md text-white">
               <Button
                 onClick={() => handleEditClick("faq", privacyList?.f_a_q)}
@@ -172,6 +211,71 @@ const Editor: React.FC = () => {
                   __html: privacyList?.f_a_q || "",
                 }}
               />
+            </div>
+          </TabsContent> */}
+          <TabsContent value="f_a_q">
+            <div className="bg-[#1A2230] p-4 rounded-md text-white">
+              <h2 className="text-xl font-semibold mb-4">
+                Frequently Asked Questions
+              </h2>
+
+              {faqList.map((faq: any, index: number) => (
+                <div
+                  key={index}
+                  className="border border-gray-600 rounded mb-3 overflow-hidden"
+                >
+                  {/* Header - Click to Expand */}
+                  <div
+                    onClick={() =>
+                      setExpandedFaq((prev) => (prev === index ? null : index))
+                    }
+                    className="bg-[#2C3442] px-4 py-3 cursor-pointer flex justify-between items-center"
+                  >
+                    <span className="font-medium">
+                      {faq.question || `Question ${index + 1}`}
+                    </span>
+                    <span>{expandedFaq === index ? "▲" : "▼"}</span>
+                  </div>
+
+                  {/* Expandable Edit Section */}
+                  {expandedFaq === index && (
+                    <div className="bg-[#1A2230] px-4 py-4">
+                      <div className="mb-3">
+                        <label className="block text-sm mb-1">Question:</label>
+                        <input
+                          className="w-full bg-[#2C3442] border border-gray-600 text-white px-3 py-2 rounded"
+                          type="text"
+                          value={faq.question}
+                          onChange={(e) =>
+                            handleFaqChange(index, "question", e.target.value)
+                          }
+                        />
+                      </div>
+
+                      <div className="mb-3">
+                        <label className="block text-sm mb-1">Answer:</label>
+                        <textarea
+                          rows={3}
+                          className="w-full bg-[#2C3442] border border-gray-600 text-white px-3 py-2 rounded"
+                          value={faq.answer}
+                          onChange={(e) =>
+                            handleFaqChange(index, "answer", e.target.value)
+                          }
+                        />
+                      </div>
+
+                      <div className="flex justify-end">
+                        <Button
+                          onClick={() => handleFaqSave(index)}
+                          disabled={savingIndex === index}
+                        >
+                          {savingIndex === index ? "Saving..." : "Save"}
+                        </Button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ))}
             </div>
           </TabsContent>
         </Tabs>
