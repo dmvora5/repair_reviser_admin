@@ -124,6 +124,22 @@ const Editor: React.FC = () => {
     }
   };
 
+  const handleFaqDelete = async (index: number) => {
+    try {
+      const updatedList = faqList.filter((_, i) => i !== index);
+      setFaqList(updatedList);
+
+      await updatePrivacy({
+        type: "f_a_q",
+        value: updatedList,
+      }).unwrap();
+
+      if (expandedFaq === index) setExpandedFaq(null);
+    } catch (err) {
+      console.error("FAQ delete error:", err);
+    }
+  };
+
   return (
     <div className="p-6">
       <ApiState isSuccess={isSuccess} error={error}>
@@ -215,9 +231,22 @@ const Editor: React.FC = () => {
           </TabsContent> */}
           <TabsContent value="f_a_q">
             <div className="bg-[#1A2230] p-4 rounded-md text-white">
-              <h2 className="text-xl font-semibold mb-4">
-                Frequently Asked Questions
-              </h2>
+              <div className="flex justify-between items-center mb-4">
+                <h2 className="text-xl font-semibold mb-0">
+                  Frequently Asked Questions
+                </h2>
+                <Button
+                  className="mb-0"
+                  onClick={() =>
+                    setFaqList((prev) => [
+                      ...prev,
+                      { question: "", answer: "" },
+                    ])
+                  }
+                >
+                  + Add New FAQ
+                </Button>
+              </div>
 
               {faqList.map((faq: any, index: number) => (
                 <div
@@ -270,6 +299,13 @@ const Editor: React.FC = () => {
                           disabled={savingIndex === index}
                         >
                           {savingIndex === index ? "Saving..." : "Save"}
+                        </Button>
+                        <Button
+                          variant="destructive"
+                          className="ml-2"
+                          onClick={() => handleFaqDelete(index)}
+                        >
+                          Delete
                         </Button>
                       </div>
                     </div>
