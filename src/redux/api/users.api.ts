@@ -149,6 +149,40 @@ export const userApi = createApi({
       }),
       invalidatesTags: ["Contact"],
     }),
+    getFAQList: build.query({
+      query: (payload: any) => ({
+        url: API_ROUTES.PRIVACY.GETFAQ,
+        method: "GET",
+      }),
+      providesTags: ["Privacy"],
+    }),
+    CreateFAQ: build.mutation({
+      query: (payload: any) => ({
+        url: API_ROUTES.PRIVACY.CREATEFAQ,
+        method: "POST",
+        body: payload,
+      }),
+      invalidatesTags: ["Privacy"],
+    }),
+    updateFAQ: build.mutation({
+      query: (payload: { id: string; body: Record<string, any> }) => {
+        const { id, body } = payload;
+
+        return {
+          url: `${API_ROUTES.PRIVACY.UPDATEFAQ}${id}`,
+          method: "PATCH",
+          body,
+        };
+      },
+      invalidatesTags: ["Privacy"],
+    }),
+    deleteFAQ: build.mutation({
+      query: (id: any) => ({
+        url: `${API_ROUTES.PRIVACY.DELETEFAQ}${id}`,
+        method: "DELETE",
+      }),
+      invalidatesTags: ["Privacy"],
+    }),
   }),
 });
 
@@ -172,5 +206,11 @@ export const {
 
   // contactus
   useGetContactUsListQuery,
-  useUpdateContactUsMutation
+  useUpdateContactUsMutation,
+
+  //FAQ
+  useGetFAQListQuery,
+  useCreateFAQMutation,
+  useUpdateFAQMutation,
+  useDeleteFAQMutation
 } = userApi;

@@ -1,10 +1,14 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import CkEditor from "@/components/CkEditor";
 import {
   useGetPrivacyListQuery,
   useUpdatePrivacyMutation,
+  useGetFAQListQuery,
+  useCreateFAQMutation,
+  useUpdateFAQMutation,
+  useDeleteFAQMutation,
 } from "@/redux/api/users.api";
 import ApiState from "@/components/ApiState";
 import { Pencil } from "lucide-react";
@@ -40,8 +44,17 @@ const Editor: React.FC = () => {
     isFetching: boolean;
   };
 
+  const {
+    data: faqData,
+    isLoading: isFaqLoading,
+    refetch: refetchFaq,
+  } = useGetFAQListQuery({});
+
   const [updatePrivacy, { isLoading: isUpdatePrivacyLoading }] =
     useUpdatePrivacyMutation();
+  const [createFAQ] = useCreateFAQMutation();
+  const [updateFAQ] = useUpdateFAQMutation();
+  const [deleteFAQ] = useDeleteFAQMutation();
 
   const [editorData, setEditorData] = useState<string>("");
   const [editingType, setEditingType] = useState<string | null>(null);
@@ -49,15 +62,26 @@ const Editor: React.FC = () => {
   const [tabLoading, setTabLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("privacy_text");
   const [faqList, setFaqList] = useState<any[]>([]);
+  console.log("🚀 ~ faqList:", faqList);
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
   const [savingIndex, setSavingIndex] = useState<number | null>(null);
+  const fileInputRef = useRef<HTMLInputElement | null>(null);
+  const [imageLoadingIndex, setImageLoadingIndex] = useState<number | null>(
+    null
+  );
 
   // Update faqList when privacyList.f_a_q becomes available
+  // useEffect(() => {
+  //   if (privacyList?.f_a_q && Array.isArray(privacyList.f_a_q)) {
+  //     setFaqList(privacyList.f_a_q);
+  //   }
+  // }, [privacyList]);
+
   useEffect(() => {
-    if (privacyList?.f_a_q && Array.isArray(privacyList.f_a_q)) {
-      setFaqList(privacyList.f_a_q);
+    if (faqData && Array.isArray(faqData)) {
+      setFaqList(faqData);
     }
-  }, [privacyList]);
+  }, [faqData]);
 
   const handleOnUpdate = (editor: string, field: string): void => {
     if (field === "description") {
@@ -97,8 +121,8 @@ const Editor: React.FC = () => {
 
   const handleFaqChange = (
     index: number,
-    field: "question" | "answer",
-    value: string
+    field: "title" | "description" | "img",
+    value: string | File
   ) => {
     setFaqList((prevFaqList) => {
       const updated = [...prevFaqList];
@@ -107,34 +131,75 @@ const Editor: React.FC = () => {
     });
   };
 
+  // const handleFaqSave = async (index: number) => {
+  //   try {
+  //     setSavingIndex(index); // Set saving state
+  //     await updatePrivacy({
+  //       type: "f_a_q",
+  //       value: faqList,
+  //     }).unwrap();
+
+  //     // Close the expanded section and reset saving state
+  //     setExpandedFaq(null);
+  //     setSavingIndex(null);
+  //   } catch (err) {
+  //     console.error("FAQ update error:", err);
+  //     setSavingIndex(null);
+  //   }
+  // };
+  // const handleFaqSave = async (index: number) => {
+  //   try {
+  //     setSavingIndex(index);
+  //     const faq = faqList[index];
+  //     if (faq.id) {
+  //       await updateFAQ({ id: faq.id, ...faq }).unwrap();
+  //     } else {
+  //       await createFAQ(faq).unwrap();
+  //     }
+  //     refetchFaq();
+  //     setExpandedFaq(null);
+  //     setSavingIndex(null);
+  //   } catch (err) {
+  //     console.error("FAQ save error:", err);
+  //     setSavingIndex(null);
+  //   }
+  // };
+
   const handleFaqSave = async (index: number) => {
     try {
-      setSavingIndex(index); // Set saving state
-      await updatePrivacy({
-        type: "f_a_q",
-        value: faqList,
-      }).unwrap();
+      setSavingIndex(index);
+      const faq = faqList[index];
+      const formData = new FormData();
 
-      // Close the expanded section and reset saving state
+      formData.append("title", faq.title);
+      formData.append("description", faq.description);
+      if (faq.img instanceof File) {
+        formData.append("img", faq.img);
+      }
+
+      if (faq.id) {
+        await updateFAQ({ id: faq.id, data: formData }).unwrap();
+      } else {
+        await createFAQ(formData).unwrap();
+      }
+
+      refetchFaq();
       setExpandedFaq(null);
       setSavingIndex(null);
     } catch (err) {
-      console.error("FAQ update error:", err);
+      console.error("FAQ save error:", err);
       setSavingIndex(null);
     }
   };
 
   const handleFaqDelete = async (index: number) => {
+    const faq = faqList[index];
     try {
-      const updatedList = faqList.filter((_, i) => i !== index);
-      setFaqList(updatedList);
-
-      await updatePrivacy({
-        type: "f_a_q",
-        value: updatedList,
-      }).unwrap();
-
-      if (expandedFaq === index) setExpandedFaq(null);
+      if (faq.id) {
+        await deleteFAQ(faq.id).unwrap();
+      }
+      refetchFaq();
+      setExpandedFaq(null);
     } catch (err) {
       console.error("FAQ delete error:", err);
     }
@@ -211,24 +276,6 @@ const Editor: React.FC = () => {
           </TabsContent>
 
           {/* FAQ Tab */}
-          {/* <TabsContent value="f_a_q">
-            <div className="bg-[#1A2230] p-4 rounded-md text-white">
-              <Button
-                onClick={() => handleEditClick("faq", privacyList?.f_a_q)}
-                className="mb-4"
-                variant="secondary"
-              >
-                <Pencil className="w-4 h-4 mr-2" /> Edit FAQ
-              </Button>
-
-              <div
-                className="prose max-w-none"
-                dangerouslySetInnerHTML={{
-                  __html: privacyList?.f_a_q || "",
-                }}
-              />
-            </div>
-          </TabsContent> */}
           <TabsContent value="f_a_q">
             <div className="bg-[#1A2230] p-4 rounded-md text-white">
               <div className="flex justify-between items-center mb-4">
@@ -240,9 +287,18 @@ const Editor: React.FC = () => {
                   onClick={() =>
                     setFaqList((prev) => [
                       ...prev,
-                      { question: "", answer: "" },
+                      { title: "", description: "", img: "", isNew: true },
                     ])
                   }
+                  // onClick={async () => {
+                  //   const newFaq = { title: "", description: "", img: "" };
+                  //   try {
+                  //     const response = await createFAQ(newFaq).unwrap();
+                  //     refetchFaq(); // refresh the list after creation
+                  //   } catch (err) {
+                  //     console.error("FAQ creation error:", err);
+                  //   }
+                  // }}
                 >
                   + Add New FAQ
                 </Button>
@@ -261,7 +317,7 @@ const Editor: React.FC = () => {
                     className="bg-[#2C3442] px-4 py-3 cursor-pointer flex justify-between items-center"
                   >
                     <span className="font-medium">
-                      {faq.question || `Question ${index + 1}`}
+                      {faq.title || `Title ${index + 1}`}
                     </span>
                     <span>{expandedFaq === index ? "▲" : "▼"}</span>
                   </div>
@@ -274,9 +330,9 @@ const Editor: React.FC = () => {
                         <input
                           className="w-full bg-[#2C3442] border border-gray-600 text-white px-3 py-2 rounded"
                           type="text"
-                          value={faq.question}
+                          value={faq.title}
                           onChange={(e) =>
-                            handleFaqChange(index, "question", e.target.value)
+                            handleFaqChange(index, "title", e.target.value)
                           }
                         />
                       </div>
@@ -286,11 +342,59 @@ const Editor: React.FC = () => {
                         <textarea
                           rows={3}
                           className="w-full bg-[#2C3442] border border-gray-600 text-white px-3 py-2 rounded"
-                          value={faq.answer}
+                          value={faq.description}
                           onChange={(e) =>
-                            handleFaqChange(index, "answer", e.target.value)
+                            handleFaqChange(
+                              index,
+                              "description",
+                              e.target.value
+                            )
                           }
                         />
+                      </div>
+
+                      <div className="mb-3">
+                        <label className="block text-sm mb-1">Image:</label>
+                        <input
+                          ref={fileInputRef}
+                          type="file"
+                          accept="image/*"
+                          className="text-white"
+                          onChange={(e) => {
+                            const file = e.target.files?.[0];
+                            if (file) {
+                              handleFaqChange(index, "img", file); // Save the File object
+                            }
+                          }}
+                        />
+                        {faq.img && (
+                          <div className="mt-2">
+                            <div className="relative w-40 h-auto inline-block">
+                              <img
+                                src={
+                                  faq.img instanceof File
+                                    ? URL.createObjectURL(faq.img)
+                                    : faq.img
+                                }
+                                alt={`FAQ ${index + 1}`}
+                                className="w-full h-auto rounded border border-gray-500 block"
+                              />
+                              <button
+                                onClick={() => {
+                                  handleFaqChange(index, "img", "");
+                                  if (fileInputRef.current) {
+                                    fileInputRef.current.value = "";
+                                  }
+                                }}
+                                className="absolute top-1 right-1 bg-black bg-opacity-70 text-white rounded-full w-6 h-6 flex items-center justify-center hover:bg-opacity-90 z-50"
+                                title="Remove Image"
+                                type="button"
+                              >
+                                ✕
+                              </button>
+                            </div>
+                          </div>
+                        )}
                       </div>
 
                       <div className="flex justify-end">
@@ -358,9 +462,11 @@ const Editor: React.FC = () => {
         )}
 
         {/* Global Loading Overlay */}
-        {(isLoading || isFetching || tabLoading || isUpdatePrivacyLoading) && (
-          <LoadingOverlay />
-        )}
+        {(isLoading ||
+          isFetching ||
+          tabLoading ||
+          isUpdatePrivacyLoading ||
+          isFaqLoading) && <LoadingOverlay />}
       </ApiState>
     </div>
   );

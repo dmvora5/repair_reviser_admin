@@ -19,6 +19,10 @@ export const API_ROUTES = {
   PRIVACY: {
     GETPRIVACY:"/platform-admin/site-content/",
     UPDATEPRIVACY:"/platform-admin/update-site-content/",
+    GETFAQ:"/platform-admin/faq-list/",
+    CREATEFAQ:"/platform-admin/faq-create/",
+    UPDATEFAQ:"/platform-admin/faq-update/",
+    DELETEFAQ:"/platform-admin/faq-update/",
   },
   CONTACTUS: {
     GETCONTACTUS:"/platform-admin/contact-us-list/",
