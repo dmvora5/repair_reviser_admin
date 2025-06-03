@@ -62,20 +62,12 @@ const Editor: React.FC = () => {
   const [tabLoading, setTabLoading] = useState(false);
   const [activeTab, setActiveTab] = useState("privacy_text");
   const [faqList, setFaqList] = useState<any[]>([]);
-  console.log("🚀 ~ faqList:", faqList);
   const [expandedFaq, setExpandedFaq] = useState<number | null>(null);
   const [savingIndex, setSavingIndex] = useState<number | null>(null);
   const fileInputRef = useRef<HTMLInputElement | null>(null);
   const [imageLoadingIndex, setImageLoadingIndex] = useState<number | null>(
     null
   );
-
-  // Update faqList when privacyList.f_a_q becomes available
-  // useEffect(() => {
-  //   if (privacyList?.f_a_q && Array.isArray(privacyList.f_a_q)) {
-  //     setFaqList(privacyList.f_a_q);
-  //   }
-  // }, [privacyList]);
 
   useEffect(() => {
     if (faqData && Array.isArray(faqData)) {
@@ -131,40 +123,6 @@ const Editor: React.FC = () => {
     });
   };
 
-  // const handleFaqSave = async (index: number) => {
-  //   try {
-  //     setSavingIndex(index); // Set saving state
-  //     await updatePrivacy({
-  //       type: "f_a_q",
-  //       value: faqList,
-  //     }).unwrap();
-
-  //     // Close the expanded section and reset saving state
-  //     setExpandedFaq(null);
-  //     setSavingIndex(null);
-  //   } catch (err) {
-  //     console.error("FAQ update error:", err);
-  //     setSavingIndex(null);
-  //   }
-  // };
-  // const handleFaqSave = async (index: number) => {
-  //   try {
-  //     setSavingIndex(index);
-  //     const faq = faqList[index];
-  //     if (faq.id) {
-  //       await updateFAQ({ id: faq.id, ...faq }).unwrap();
-  //     } else {
-  //       await createFAQ(faq).unwrap();
-  //     }
-  //     refetchFaq();
-  //     setExpandedFaq(null);
-  //     setSavingIndex(null);
-  //   } catch (err) {
-  //     console.error("FAQ save error:", err);
-  //     setSavingIndex(null);
-  //   }
-  // };
-
   const handleFaqSave = async (index: number) => {
     try {
       setSavingIndex(index);
@@ -175,10 +133,13 @@ const Editor: React.FC = () => {
       formData.append("description", faq.description);
       if (faq.img instanceof File) {
         formData.append("img", faq.img);
+      } else if (!faq.img) {
+        // Send explicit null to indicate image should be removed
+        formData.append("img", "");
       }
 
       if (faq.id) {
-        await updateFAQ({ id: faq.id, data: formData }).unwrap();
+        await updateFAQ({ id: faq.id, body: formData }).unwrap();
       } else {
         await createFAQ(formData).unwrap();
       }
@@ -290,15 +251,6 @@ const Editor: React.FC = () => {
                       { title: "", description: "", img: "", isNew: true },
                     ])
                   }
-                  // onClick={async () => {
-                  //   const newFaq = { title: "", description: "", img: "" };
-                  //   try {
-                  //     const response = await createFAQ(newFaq).unwrap();
-                  //     refetchFaq(); // refresh the list after creation
-                  //   } catch (err) {
-                  //     console.error("FAQ creation error:", err);
-                  //   }
-                  // }}
                 >
                   + Add New FAQ
                 </Button>
